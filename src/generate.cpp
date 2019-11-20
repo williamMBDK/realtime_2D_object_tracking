@@ -17,7 +17,7 @@ IO::image random(int W, int H, int MAX_RGB){
 }
 
 bool check(int x, int y, int W, int H){
-  return x > -1 && x < W && y > -1 && y < H;
+  return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
 }
 
 IO::image uniformly_random_object(int W, int H, int MAX_RGB){
@@ -37,7 +37,7 @@ IO::image uniformly_random_object(int W, int H, int MAX_RGB){
     {0, 1}
   };
   vector<bool> visited (W*H, false);
-  for(int i = 0; i < W * H / 2; i++){
+  for(int i = 0; i < (size/100.0)*W*H; i++){
     pair<int, int> curr = q.top(); q.pop();
     if(visited[curr.second]){
       i--;
