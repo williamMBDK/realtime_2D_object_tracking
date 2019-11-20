@@ -51,6 +51,7 @@ namespace IO{
         }
       }
       cout << "Succesfully read image data from " << file << endl;
+      fileIn.close();
       //__test1(img.data);
     }else{
       cerr << "could not open file" << endl;

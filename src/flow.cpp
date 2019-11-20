@@ -21,7 +21,10 @@ int getMinFlowOnPath(vector<int> &path, vector<vector<int>> &matrix){
 
 void dfs_parent(vector<vector<int>> &matrix, vector<int>& parents, int node){
   for(int i = 0; i < matrix.size(); i++){
+    //cout << node << " " << i << endl;
+    //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
     if(matrix[node][i] != 0 && parents[i] == -1){
+      //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
       parents[i] = node;
       dfs_parent(matrix, parents, i);
     }
@@ -60,6 +63,7 @@ int maxFlow(vector<vector<int>> &matrix, int s, int t){
   int flow = -1;
   while(flow != 0){
     vector<int> path = getPath(matrix, s, t);
+    //debug(path.size());
     if(path.size() != 0){
       flow = getMinFlowOnPath(path, matrix);
       adjustResidualGraph(path, matrix, flow);
@@ -207,8 +211,8 @@ void validateAllMinCut(){
   }
 }
 
-int main(){
+/*int main(){
   validateAllMaxFlowTestData();
   cout << endl;
   validateAllMinCut();
-}
+}*/
