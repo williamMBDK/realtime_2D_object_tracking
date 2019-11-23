@@ -28,7 +28,7 @@ namespace DATA{
   }
 
   int deltaPixel_v2(vector<int> p1, vector<int> p2){
-    double k = 30.0;
+    double k = 10.0;
     double brightness1 = 0.2126*(double)p1[0] + 0.7152*(double)p1[1] + 0.0722*(double)p1[2];
     double brightness2 = 0.2126*(double)p2[0] + 0.7152*(double)p2[1] + 0.0722*(double)p2[2];
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
@@ -74,8 +74,8 @@ namespace DATA{
     int t = img.W*img.H + 1;
     int component1NodeIdx = component1Node.first * img.H + component1Node.second;
     int component2NodeIdx = component2Node.first * img.H + component2Node.second;
-    matrix[s][component1NodeIdx] = ma;
-    matrix[component2NodeIdx][t] = ma;
+    matrix[s][component1NodeIdx] = INT_MAX;
+    matrix[component2NodeIdx][t] = INT_MAX;
     return flow_graph(s, t, matrix);
   }
 
