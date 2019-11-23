@@ -28,7 +28,7 @@ namespace DATA{
   }
 
   int deltaPixel_v2(vector<int> p1, vector<int> p2){
-    double k = 10.0;
+    double k = 4;
     double brightness1 = 0.2126*(double)p1[0] + 0.7152*(double)p1[1] + 0.0722*(double)p1[2];
     double brightness2 = 0.2126*(double)p2[0] + 0.7152*(double)p2[1] + 0.0722*(double)p2[2];
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
