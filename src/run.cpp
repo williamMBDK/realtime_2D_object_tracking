@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
   DATA::flow_graph flowGraph = DATA::imageToFlowGraph(img, backgroundPixel, foregroundPixel);
   //printFlowGraph(flowGraph);
   vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
-  //printMinCut(min_cut);
+  DATA::printMinCutImage(min_cut, img);
   DATA::applyMinCutOnImage(img, min_cut);
   IO::writePPM(argv[2], img);
 }

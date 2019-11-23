@@ -23,7 +23,7 @@ void dfs_parent(vector<vector<int>> &matrix, vector<int>& parents, int node){
   for(int i = 0; i < matrix.size(); i++){
     //cout << node << " " << i << endl;
     //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
-    if(matrix[node][i] != 0 && parents[i] == -1){
+    if(matrix[node][i] > 0 && parents[i] == -1){
       //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
       parents[i] = node;
       dfs_parent(matrix, parents, i);
@@ -52,7 +52,7 @@ void dfs_markVisited(vector<vector<int>> &matrix, int node, vector<bool> &visite
   if(visited[node]) return;
   visited[node] = true;
   for(int i = 0; i < matrix.size(); i++){
-    if(matrix[node][i] != 0){
+    if(matrix[node][i] > 0){
       dfs_markVisited(matrix, i, visited);
     }
   }
@@ -88,7 +88,8 @@ vector<pair<int, int>> minCut(vector<vector<int>> &matrix, int s, int t){
   for(int i = 0; i < original.size(); i++){
     if(visited[i]){
       for(int j = 0; j < original[i].size(); j++){
-        if(!visited[j] && original[i][j] != 0){
+        if(!visited[j] && original[i][j] != -1){
+          //cout << original[i][j] << endl;
           cut.push_back({i, j});
         }
       }
@@ -104,7 +105,7 @@ void validateMaxFlowTestData(string infileString, string answerfileString, int t
   char sC, tC; inFile >> sC >> tC;
   int s = (int)sC - (int)'A';
   int t = (int)tC - (int)'A';
-  vector<vector<int>> matrix (26, vector<int> (26, 0));
+  vector<vector<int>> matrix (26, vector<int> (26, -1));
   for(int i = 0; i < M; i++){
     char aC, bC; inFile >> aC >> bC;
     int flow; inFile >> flow;
@@ -143,7 +144,7 @@ bool isBinaryPartition(vector<vector<int>>& matrix){
   vector<vector<int>> copy = matrix;
   for(int i = 0; i < copy.size(); i++){
     for(int j = 0; j < copy.size(); j++){
-      if(copy[i][j] != 0 && copy[j][i] == 0){
+      if(copy[i][j] > 0 && copy[j][i] == 0){
         copy[j][i] = copy[i][j];
       }
     }
@@ -152,7 +153,7 @@ bool isBinaryPartition(vector<vector<int>>& matrix){
   return countComponents(copy) == 2;
 }
 
-void printMinCut(vector<pair<int, int>>& min_cut){
+void printMinCutTestData(vector<pair<int, int>>& min_cut){
   for(int i = 0; i < min_cut.size(); i++){
     cout << (char)(min_cut[i].first + (int)'A') << " " << (char)(min_cut[i].second + (int)'A') << endl;
   }
@@ -166,7 +167,7 @@ void validateMinCut(string infileString, string answerfileString, int test){
   char sC, tC; inFile >> sC >> tC;
   int s = (int)sC - (int)'A';
   int t = (int)tC - (int)'A';
-  vector<vector<int>> matrix (26, vector<int> (26, 0));
+  vector<vector<int>> matrix (26, vector<int> (26, -1));
   set<int> nodes;
   for(int i = 0; i < M; i++){
     char aC, bC; inFile >> aC >> bC;
@@ -211,8 +212,8 @@ void validateAllMinCut(){
   }
 }
 
-/*int main(){
+int main(){
   validateAllMaxFlowTestData();
   cout << endl;
   validateAllMinCut();
-}*/
+}
