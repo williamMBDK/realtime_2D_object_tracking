@@ -23,6 +23,7 @@ namespace PRESEG{
     METHOD 1.1:
       Use variant 1
       Solve using dymanic programming and a discrete domain of the functions
+      problemet med DP er at to pixels kan komme til at ligge og skifte mellem den ene og den anden. Den ene bliver til den anden farve og den anden blier den førstes hele tiden.
     METHOD 1.2
       Use variant 1
       Solve using numerical methods (euler or runge-kutta*).
@@ -119,7 +120,4 @@ namespace PRESEG{
       }
     }
   }
-
-
-
 }
