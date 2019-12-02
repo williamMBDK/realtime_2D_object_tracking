@@ -10,10 +10,10 @@ namespace PRESEG{
       variant 1
         I(x, y, t) denotes the intensity (0-255) of the pixel at position (x, y) in an image of size (W, H) at time t.
         I'(x, y, t) = max(
-          I(x + 1, y, t - 1),
-          I(x - 1, y, t - 1),
-          I(x, y + 1, t - 1),
-          I(x, y - 1, t - 1)
+          |I(x + 1, y, t - 1) - I(x, y, t - 1)|,
+          |I(x - 1, y, t - 1) - I(x, y, t - 1)|,
+          |I(x, y + 1, t - 1) - I(x, y, t - 1)|,
+          |I(x, y - 1, t - 1) - I(x, y, t - 1)|
         ) / k
         constraints:
           1 <= x <= W
@@ -80,4 +80,46 @@ namespace PRESEG{
       }
     }
   }
+
+  void experimential(IO::image& img){
+    srand(time(NULL));
+    int tMax = 200, K = 5;
+    vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        dp[i][j][0] = brightness(img.getPixel(i, j));
+      }
+    }
+    vector<pair<int, int>> dirs = {
+      {-1, 0}, {0, -1}, {1, 0}, {0, 1}
+    };
+    for(int t = 1; t < tMax; t++){
+      for(int i = 0; i < img.W; i++){
+        for(int j = 0; j < img.H; j++){
+          dp[i][j][t] = dp[i][j][t-1];
+          int m = INT_MAX;
+          for(int k = 0; k < 4; k++){
+            int newI = i + dirs[k].first;
+            int newJ = j + dirs[k].second;
+            if(isInGrid(newI, newJ, img.W, img.H) &&
+               abs(dp[newI][newJ][t-1] - dp[i][j][t-1]) + ((rand() % 20) - 10) < abs(m)
+            ){
+              m = dp[newI][newJ][t-1] - dp[i][j][t-1];
+            }
+          }
+          dp[i][j][t] += m;
+        }
+      }
+    }
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        dp[i][j][tMax - 1] = min(dp[i][j][tMax - 1], img.MAX_RGB);
+        dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
+        img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
+      }
+    }
+  }
+
+
+
 }
