@@ -39,15 +39,21 @@ int main(int argc, char const *argv[]) {
   IO::readPPM(argv[1], img);
   cout << HEU::avgDiff(img) << endl;*/
 
-  // presegmentation method 1.1 test
+  /*// presegmentation method 1.1 test
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::method1_1(img);
-  IO::writePPM(argv[2], img);
+  IO::writePPM(argv[2], img);*/
 
   /*// presegmentation experimential test
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::experimential(img);
   IO::writePPM(argv[2], img);*/
+
+  // presegmentation method 1.3 test
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  PRESEG::method1_3(img);
+  IO::writePPM(argv[2], img);
 }

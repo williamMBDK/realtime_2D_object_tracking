@@ -55,19 +55,17 @@ namespace PRESEG{
       Solve using numerical methods (euler or runge-kutta*).
   */
 
-  int eval(vector<int> vals){
-    int m = INT_MAX;
-    for(int i = 0; i < vals.size(); i++){
-      if(abs(val[i]) < abs(m)){
-        m = val[i];
-      }
-    }
-    return m;
+  int brightness(vector<int> pixel){
+    return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
+  }
+
+  bool isInGrid(int x, int y, int W, int H){
+    return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
   }
 
   // memory optimize dp
   void method1_3(IO::image& img){
-    int N_MAX = 200;
+    int N_MAX = 1;
     int dT = 0.1;
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
@@ -75,7 +73,7 @@ namespace PRESEG{
     vector<vector<vector<int>>> dp (N_MAX, vector<vector<int>> (img.W, vector<int> (img.H)));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        mem[i][j][0] = brightness(img.getPixel(i, j));
+        dp[0][i][j] = brightness(img.getPixel(i, j));
       }
     }
     for(int n = 1; n < N_MAX; n++){ // slight memory optimization on ks.
@@ -99,11 +97,11 @@ namespace PRESEG{
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
-          int nbVal = dp[n-1][newI][newJ] + ks[0][newI][newJ] * dT / 2.0;
-          if(isInGrid(newI, newJ, img.W, img.H) &&
-             abs(nbVal - val) < abs(m)
-          ){
-            m = nbVal - val;
+          if(isInGrid(newI, newJ, img.W, img.H)){
+            int nbVal = dp[n-1][newI][newJ] + ks[0][newI][newJ] * dT / 2.0;
+            if(abs(nbVal - val) < abs(m)){
+              m = nbVal - val;
+            }
           }
         }
         ks[1][i][j] = m;
@@ -114,11 +112,11 @@ namespace PRESEG{
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
-          int nbVal = dp[n-1][newI][newJ] + ks[1][newI][newJ] * dT / 2.0;
-          if(isInGrid(newI, newJ, img.W, img.H) &&
-             abs(nbVal - val) < abs(m)
-          ){
-            m = nbVal - val;
+          if(isInGrid(newI, newJ, img.W, img.H)){
+            int nbVal = dp[n-1][newI][newJ] + ks[1][newI][newJ] * dT / 2.0;
+            if(abs(nbVal - val) < abs(m)){
+              m = nbVal - val;
+            }
           }
         }
         ks[2][i][j] = m;
@@ -129,11 +127,11 @@ namespace PRESEG{
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
-          int nbVal = dp[n-1][newI][newJ] + ks[2][newI][newJ] * dT;
-          if(isInGrid(newI, newJ, img.W, img.H) &&
-             abs(nbVal - val) < abs(m)
-          ){
-            m = nbVal - val;
+          if(isInGrid(newI, newJ, img.W, img.H)){
+            int nbVal = dp[n-1][newI][newJ] + ks[2][newI][newJ] * dT;
+            if(abs(nbVal - val) < abs(m)){
+              m = nbVal - val;
+            }
           }
         }
         ks[3][i][j] = m;
@@ -144,19 +142,11 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        dp[i][j][N_MAX - 1] = min(dp[i][j][N_MAX - 1], img.MAX_RGB);
-        dp[i][j][N_MAX - 1] = max(dp[i][j][N_MAX - 1], 0);
-        img.setPixel(i, j, {dp[i][j][N_MAX - 1], dp[i][j][N_MAX - 1], dp[i][j][N_MAX - 1]});
+        dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], img.MAX_RGB);
+        dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0);
+        img.setPixel(i, j, {dp[N_MAX - 1][i][j], dp[N_MAX - 1][i][j], dp[N_MAX - 1][i][j]});
       }
     }
-  }
-
-  int brightness(vector<int> pixel){
-    return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
-  }
-
-  bool isInGrid(int x, int y, int W, int H){
-    return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
   }
 
   // can be optimized by removing previous dp
