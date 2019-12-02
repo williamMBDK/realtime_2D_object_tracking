@@ -65,7 +65,7 @@ namespace PRESEG{
 
   // memory optimize dp
   void method1_3(IO::image& img){
-    int N_MAX = 1;
+    int N_MAX = 200;
     double dT = 0.1;
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
