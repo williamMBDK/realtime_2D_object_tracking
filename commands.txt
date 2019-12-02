@@ -1,0 +1,4 @@
+g++ src/run.cpp -o compiled/run -O3
+g++ src/run.cpp -o compiled/run -O3 -g
+./compiled/run filein fileout
+convert foo.ppm -compress none -resize 100x100 bar.ppm

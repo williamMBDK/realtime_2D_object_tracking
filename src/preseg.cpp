@@ -38,34 +38,45 @@ namespace PRESEG{
     return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
   }
 
+  bool isInGrid(int x, int y, int W, int H){
+    return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
+  }
+
   // can be optimized by removing previous dp
   void method1_1(IO::image& img){
-    int tMax = 5, k = 5;
-    vector<vector<vector<int>>> dp (img.W + 2, vector<vector<int>> (img.H + 2, vector<int> (tMax)));
-    for(int i = 1; i <= img.W; i++){
-      for(int j = 1; j <= img.H; j++){
-        dp[i][j][0] = brightness(img.getPixel(i-1, j-1));
+    int tMax = 200, K = 5;
+    vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        dp[i][j][0] = brightness(img.getPixel(i, j));
       }
     }
+    vector<pair<int, int>> dirs = {
+      {-1, 0}, {0, -1}, {1, 0}, {0, 1}
+    };
     for(int t = 1; t < tMax; t++){
-      for(int i = 1; i <= img.W; i++){
-        for(int j = 1; j <= img.H; j++){
-          dp[i][j][t] = dp[i][j][t-1] + max(
-            max(
-              dp[i-1][j][t-1],
-              dp[i+1][j][t-1]
-            ),
-            max(
-              dp[i][j-1][t-1],
-              dp[i][j+1][t-1]
-            )
-          ) / k;
+      for(int i = 0; i < img.W; i++){
+        for(int j = 0; j < img.H; j++){
+          dp[i][j][t] = dp[i][j][t-1];
+          int m = INT_MAX;
+          for(int k = 0; k < 4; k++){
+            int newI = i + dirs[k].first;
+            int newJ = j + dirs[k].second;
+            if(isInGrid(newI, newJ, img.W, img.H) &&
+               abs(dp[newI][newJ][t-1] - dp[i][j][t-1]) < abs(m)
+            ){
+              m = dp[newI][newJ][t-1] - dp[i][j][t-1];
+            }
+          }
+          dp[i][j][t] += m;
         }
       }
     }
-    for(int i = 1; i <= img.W; i++){
-      for(int j = 1; j <= img.H; j++){
-        img.setPixel(i - 1, j - 1, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        dp[i][j][tMax - 1] = min(dp[i][j][tMax - 1], img.MAX_RGB);
+        dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
+        img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
       }
     }
   }
