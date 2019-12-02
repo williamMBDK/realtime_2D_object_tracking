@@ -49,7 +49,7 @@ namespace PRESEG{
     vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        dp[i][j][0] = brightness(img.getPixel(i, j));
+        dp[i][j][0] = pow(brightness(img.getPixel(i, j)), 2);
       }
     }
     vector<pair<int, int>> dirs = {
@@ -69,12 +69,13 @@ namespace PRESEG{
               m = dp[newI][newJ][t-1] - dp[i][j][t-1];
             }
           }
-          dp[i][j][t] += m;
+          dp[i][j][t] += m * 2;
         }
       }
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
+        dp[i][j][tMax - 1] = sqrt(dp[i][j][tMax - 1]);
         dp[i][j][tMax - 1] = min(dp[i][j][tMax - 1], img.MAX_RGB);
         dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
         img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
