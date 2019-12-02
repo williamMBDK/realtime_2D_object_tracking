@@ -2,6 +2,8 @@
 #include"IO.cpp"
 #include"data.cpp"
 #include"flow.cpp"
+#include"heu.cpp"
+#include"preseg.cpp"
 using namespace std;
 
 int main(int argc, char const *argv[]) {
@@ -18,7 +20,7 @@ int main(int argc, char const *argv[]) {
   IO::writePPM(argv[2], img);*/
 
   // v2 tests
-  IO::image img;
+  /*IO::image img;
   IO::readPPM(argv[1], img);
   pair<int, int> backgroundPixel, foregroundPixel;
   cout << "background pixel (0-indexed, x, y): ";
@@ -30,5 +32,16 @@ int main(int argc, char const *argv[]) {
   vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
   DATA::printMinCutImage(min_cut, img);
   DATA::applyMinCutOnImage(img, min_cut);
+  IO::writePPM(argv[2], img);*/
+
+  /*// heuristic: avgDiff test
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  cout << HEU::avgDiff(img) << endl;*/
+
+  // presegmentation method 1.1 test
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  PRESEG::method1_1(img);
   IO::writePPM(argv[2], img);
 }
