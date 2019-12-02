@@ -66,20 +66,20 @@ namespace PRESEG{
   // memory optimize dp
   void method1_3(IO::image& img){
     int N_MAX = 1;
-    int dT = 0.1;
+    double dT = 0.1;
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
     };
-    vector<vector<vector<int>>> dp (N_MAX, vector<vector<int>> (img.W, vector<int> (img.H)));
+    vector<vector<vector<double>>> dp (N_MAX, vector<vector<double>> (img.W, vector<double> (img.H)));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        dp[0][i][j] = brightness(img.getPixel(i, j));
+        dp[0][i][j] = (double)brightness(img.getPixel(i, j));
       }
     }
     for(int n = 1; n < N_MAX; n++){ // slight memory optimization on ks.
-      vector<vector<vector<int>>> ks (4, vector<vector<int>> (img.W, vector<int> (img.H)));
+      vector<vector<vector<double>>> ks (4, vector<vector<double>> (img.W, vector<double> (img.H)));
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
-        int m = INT_MAX;
+        double m = DBL_MAX;
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
@@ -92,13 +92,13 @@ namespace PRESEG{
         ks[0][i][j] = m;
       }
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
-        int m = INT_MAX;
-        int val = dp[n-1][i][j] + ks[0][i][j] * dT / 2.0;
+        double m = DBL_MAX;
+        double val = dp[n-1][i][j] + ks[0][i][j] * dT / 2.0;
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
           if(isInGrid(newI, newJ, img.W, img.H)){
-            int nbVal = dp[n-1][newI][newJ] + ks[0][newI][newJ] * dT / 2.0;
+            double nbVal = dp[n-1][newI][newJ] + ks[0][newI][newJ] * dT / 2.0;
             if(abs(nbVal - val) < abs(m)){
               m = nbVal - val;
             }
@@ -107,13 +107,13 @@ namespace PRESEG{
         ks[1][i][j] = m;
       }
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
-        int m = INT_MAX;
-        int val = dp[n-1][i][j] + ks[1][i][j] * dT / 2.0;
+        double m = DBL_MAX;
+        double val = dp[n-1][i][j] + ks[1][i][j] * dT / 2.0;
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
           if(isInGrid(newI, newJ, img.W, img.H)){
-            int nbVal = dp[n-1][newI][newJ] + ks[1][newI][newJ] * dT / 2.0;
+            double nbVal = dp[n-1][newI][newJ] + ks[1][newI][newJ] * dT / 2.0;
             if(abs(nbVal - val) < abs(m)){
               m = nbVal - val;
             }
@@ -122,13 +122,13 @@ namespace PRESEG{
         ks[2][i][j] = m;
       }
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
-        int m = INT_MAX;
-        int val = dp[n-1][i][j] + ks[2][i][j] * dT;
+        double m = DBL_MAX;
+        double val = dp[n-1][i][j] + ks[2][i][j] * dT;
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
           if(isInGrid(newI, newJ, img.W, img.H)){
-            int nbVal = dp[n-1][newI][newJ] + ks[2][newI][newJ] * dT;
+            double nbVal = dp[n-1][newI][newJ] + ks[2][newI][newJ] * dT;
             if(abs(nbVal - val) < abs(m)){
               m = nbVal - val;
             }
@@ -142,9 +142,9 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], img.MAX_RGB);
-        dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0);
-        img.setPixel(i, j, {dp[N_MAX - 1][i][j], dp[N_MAX - 1][i][j], dp[N_MAX - 1][i][j]});
+        dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], (double)img.MAX_RGB);
+        dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0.0);
+        img.setPixel(i, j, {(int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j]});
       }
     }
   }
