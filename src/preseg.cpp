@@ -6,6 +6,8 @@ using namespace std;
 namespace PRESEG{
   /*
   METHOD 1: system of recursive partial differential equations
+    God hvis man ikke ved hvor mange segmenter der skal / kan være.
+    det er på en graf af pixels.
     2 variatiants of the system
       variant 1
         I(x, y, t) denotes the intensity (0-255) of the pixel at position (x, y) in an image of size (W, H) at time t.
@@ -53,6 +55,9 @@ namespace PRESEG{
     METHOD 1.4
       Use variant 2
       Solve using numerical methods (euler or runge-kutta*).
+    METHOD 1.5
+      udvidelse. kør en metode flere gange og byg en ny graf hver gang, der kigger på alle naboer til en knude på mappet. O(logn * n * STOR_CONSTANT) antallet af knuder vil altid mindst halveres.
+      Når den nye graf bygges svarer det til et graphcut.
   */
 
   int brightness(vector<int> pixel){
@@ -65,7 +70,7 @@ namespace PRESEG{
 
   // memory optimize dp
   void method1_3(IO::image& img){
-    int N_MAX = 200;
+    int N_MAX = 2000;
     double dT = 0.1;
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
@@ -73,7 +78,7 @@ namespace PRESEG{
     vector<vector<vector<double>>> dp (N_MAX, vector<vector<double>> (img.W, vector<double> (img.H)));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        dp[0][i][j] = (double)brightness(img.getPixel(i, j));
+        dp[0][i][j] = (double)pow(brightness(img.getPixel(i, j)), 2);
       }
     }
     for(int n = 1; n < N_MAX; n++){ // slight memory optimization on ks.
@@ -142,6 +147,7 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
+        dp[N_MAX - 1][i][j] = sqrt(dp[N_MAX - 1][i][j]);
         dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], (double)img.MAX_RGB);
         dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0.0);
         img.setPixel(i, j, {(int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j]});
