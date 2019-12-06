@@ -51,9 +51,15 @@ int main(int argc, char const *argv[]) {
   PRESEG::experimential(img);
   IO::writePPM(argv[2], img);*/
 
-  // presegmentation method 1.3 test
+  /*// presegmentation method 1.3 test
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::method1_3(img);
+  IO::writePPM(argv[2], img);*/
+
+  // k means
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  PRESEG::method2(img);
   IO::writePPM(argv[2], img);
 }

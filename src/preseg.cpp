@@ -58,6 +58,10 @@ namespace PRESEG{
     METHOD 1.5
       udvidelse. kør en metode flere gange og byg en ny graf hver gang, der kigger på alle naboer til en knude på mappet. O(logn * n * STOR_CONSTANT) antallet af knuder vil altid mindst halveres.
       Når den nye graf bygges svarer det til et graphcut.
+    METHOD 2:
+      k-means clusering with k-means++
+      dimensions:
+        x,y,r,g,b
   */
 
   int brightness(vector<int> pixel){
@@ -231,6 +235,81 @@ namespace PRESEG{
         dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
         img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
       }
+    }
+  }
+
+  int dist(vector<int> &v1, vector<int> &v2){
+    int s = 0;
+    for(int i = 0; i < v1.size(); i++){
+      s += abs(v1[i] - v2[i]);
+    }
+    return s;
+  }
+
+  void method2(IO::image& img){
+    srand(time(NULL)); // seeding rng
+    int K = sqrt(img.H * img.W) / 10;
+    int thres = 1;
+    int D = 5; // dimensions
+    vector<vector<int>> clusters = vector<vector<int>> (K);
+    for(int i = 0; i < K; i++){
+      clusters[i] = {
+        rand() % img.W,
+        rand() % img.H,
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB
+      };
+    }
+    vector<vector<int>> clusterSums = vector<vector<int>> (K, vector<int> (D));
+    vector<int> clusterCount = vector<int> (K, 0);
+    vector<vector<int>> clusterColors = vector<vector<int>> (K);
+    for(int i = 0; i < K; i++){
+      clusterColors[i] = {
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB
+      };
+    }
+    vector<vector<vector<int>>> imgColors = vector<vector<vector<int>>> (img.W, vector<vector<int>> (img.H));
+    while(true){
+      for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
+        pair<int, int> m = {INT_MAX, -1};
+        vector<int> pixel = img.getPixel(i, j);
+        vector<int> p = {
+          i, j, pixel[0], pixel[1], pixel[2]
+        };
+        for(int k = 0; k < K; k++){
+          int d = dist(p, clusters[k]);
+          if(d < m.first){
+            m = {d, k};
+          }
+        }
+        clusterCount[m.second]++;
+        for(int d = 0; d < D; d++){
+          clusterSums[m.second][d] += p[d];
+        }
+        imgColors[i][j] = clusterColors[m.second];
+      }
+      vector<vector<int>> preClusters = clusters;
+      for(int i = 0; i < K; i++){
+        for(int j = 0; j < D; j++){
+          clusters[i][j] = clusterSums[i][j] / clusterCount[i];
+        }
+      }
+      clusterCount = vector<int> (K);
+      clusterSums = vector<vector<int>> (K, vector<int> (D));
+      bool b = false;
+      for(int i = 0; i < K; i++){
+        if(dist(preClusters[i], clusters[i]) > thres){
+          b = true;
+          break;
+        }
+      }
+      if(!b) break;
+    }
+    for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
+      img.setPixel(i, j, imgColors[i][j]);
     }
   }
 }
