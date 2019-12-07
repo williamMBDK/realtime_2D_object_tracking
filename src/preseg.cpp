@@ -257,6 +257,7 @@ namespace PRESEG{
     int MAX_VALUE = 300;
     int POSWEIGTH = 5;
     vector<vector<int>> clusters = vector<vector<int>> ();
+    vector<vector<int>> clusterColors = vector<vector<int>> ();
     int size = 30;
     for(int i = size/2; i < img.W; i+=size){
       for(int j = size/2; j < img.H; j+=size){
@@ -280,19 +281,12 @@ namespace PRESEG{
           j * POSWEIGTH,
           rgb[0] / c, rgb[1] / c, rgb[2] / c
         });
+        clusterColors.push_back({rgb[0] / c, rgb[1] / c, rgb[2] / c});
       }
     }
     int K = clusters.size();
     vector<vector<int>> clusterSums = vector<vector<int>> (K, vector<int> (D));
     vector<int> clusterCount = vector<int> (K, 0);
-    vector<vector<int>> clusterColors = vector<vector<int>> (K);
-    for(int i = 0; i < K; i++){
-      clusterColors[i] = {
-        rand() % img.MAX_RGB,
-        rand() % img.MAX_RGB,
-        rand() % img.MAX_RGB
-      };
-    }
     vector<vector<vector<int>>> imgColors = vector<vector<vector<int>>> (img.W, vector<vector<int>> (img.H));
     while(true){
       cout << "iteration" << endl;
