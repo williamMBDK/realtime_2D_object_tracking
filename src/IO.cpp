@@ -13,7 +13,7 @@ namespace IO{
       this->MAX_RGB = MAX_RGB;
     }
     void setPixel(int i, int j, vector<int> rgb){
-      this->data.at(i).at(j) = rgb;
+      this->data[i][j] = rgb;
     }
 
     vector<int> getPixel(int i, int j){
@@ -44,8 +44,8 @@ namespace IO{
       int MAX_RGB; fileIn >> MAX_RGB;
       cout << "Opened file of type " << type << " and dimensions " << W << " * " << H << " and max rgb value of " << MAX_RGB << endl;
       img = image(W, H, MAX_RGB);
-      for(int i = 0; i < W; i++){
-        for(int j = 0; j < H; j++){
+      for(int j = 0; j < H; j++){
+        for(int i = 0; i < W; i++){
           int r,g,b; fileIn >> r >> g >> b;
           img.setPixel(i, j, {r, g, b});
         }
@@ -65,8 +65,8 @@ namespace IO{
       fileOut << "P3" << endl;
       fileOut << img.W << " " << img.H << endl;
       fileOut << img.MAX_RGB << endl;
-      for(int i = 0; i < img.W; i++){
-        for(int j = 0; j < img.H; j++){
+      for(int j = 0; j < img.H; j++){
+        for(int i = 0; i < img.W; i++){
           vector<int> pixel = img.getPixel(i, j);
           fileOut << pixel.at(0) << " " << pixel.at(1) << " " << pixel.at(2) << endl;
         }
