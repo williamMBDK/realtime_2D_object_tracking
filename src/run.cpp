@@ -57,9 +57,15 @@ int main(int argc, char const *argv[]) {
   PRESEG::method1_3(img);
   IO::writePPM(argv[2], img);*/
 
-  // k means
+  /*// k means
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::method2(img);
+  IO::writePPM(argv[2], img);*/
+
+  // FFT spectrum test
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  PRESEG::FFT_spectrum(img);
   IO::writePPM(argv[2], img);
 }
