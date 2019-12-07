@@ -62,6 +62,11 @@ namespace PRESEG{
       k-means clusering with k-means++
       dimensions:
         x,y,r,g,b
+    METHOD 3:
+      3.1:
+        band-pass-filter
+      3.2
+        gaussian low pass filter
   */
 
   int brightness(vector<int> pixel){
@@ -343,12 +348,12 @@ namespace PRESEG{
     }
   };
 
-  ComplexNumber FT2D(vector<vector<int>>& v, int k, int l, int W, int H){
+  ComplexNumber FT2D(vector<vector<double>>& v, int k, int l, int W, int H){
     ComplexNumber res (0.0, 0.0);
     for(int i = 0; i < W; i++){
       for(int j = 0; j < H; j++){
-        double a = v[i][j]*cos(2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
-        double b = v[i][j]*sin(2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
+        double a = v[i][j]*cos(-2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
+        double b = v[i][j]*sin(-2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
         res.a += a;
         res.b += b;
       }
@@ -358,10 +363,10 @@ namespace PRESEG{
 
   void FFT_spectrum(IO::image& img){
     // build 2d vector of brightness values
-    vector<vector<int>> v (img.W, vector<int> (img.H));
+    vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        v[i][j] = brightness(img.getPixel(i, j));
+        v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
       }
     }
     // now calculate the fourier transform for all frequencies
@@ -369,9 +374,105 @@ namespace PRESEG{
     for(int k = 0; k < img.W; k++){
       for(int l = 0; l < img.H; l++){
         fre[k][l] = FT2D(v, k, l, img.W, img.H);
-        int length = sqrt(fre[k][l].a * fre[k][l].a + fre[k][l].b * fre[k][l].b);
-        cout << fre[k][l].a << " " << fre[k][l].b << endl;
-        img.setPixel(k, l, {length, length, length});
+      }
+    }
+    for(int i = 0; i < img.W/2; i++){
+      for(int j = 0; j < img.H/2; j++){
+        int length = sqrt(fre[i][j].a * fre[i][j].a + fre[i][j].b * fre[i][j].b);
+        img.setPixel(img.W/2 + i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 + i, img.H/2 - j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 - j, {length, length, length});
+      }
+    }
+  }
+
+  double doubleDist(vector<double> v1, vector<double> v2){
+    double s = 0;
+    for(int i = 0; i < v1.size(); i++){
+      s += (v1[i] - v2[i])*(v1[i] - v2[i]);
+    }
+    return sqrt(s);
+  }
+
+  double inverseFT2D(vector<vector<ComplexNumber>> &fre, int i, int j, int W, int H){
+    ComplexNumber res (0.0, 0.0);
+    for(int k = 0; k < W; k++){
+      for(int l = 0; l < H; l++){
+        double a = cos(2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
+        double b = sin(2.0*M_PI*((double)k*(double)i/(double)W + (double)l*(double)j/(double)H));
+        double c = fre[k][l].a;
+        double d = fre[k][l].b;
+        res.a += (a * c - b * d);
+        res.b += (a * d + b * c);
+      }
+    }
+    return res.a / (W * H);
+  }
+
+  void method3_1(IO::image& img){
+    int FMAX = 1;
+    int DMAX = min(img.W, img.H) / FMAX;
+    int FMIN = 2;
+    int DMIN = min(img.W, img.H) / FMIN;
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j));
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre (img.W, vector<ComplexNumber> (img.H));
+    for(int k = 0; k < img.W; k++){
+      for(int l = 0; l < img.H; l++){
+        fre[k][l] = FT2D(v, k, l, img.W, img.H);
+      }
+    }
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        int d = sqrt(i * i + j * j);
+        if(d > DMAX || d < DMIN){
+          fre[i][j] = ComplexNumber(0.0, 0.0);
+        }
+      }
+    }
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        int v = min(img.MAX_RGB, max((int)inverseFT2D(fre, i, j, img.W, img.H), 0));
+        img.setPixel(i, j, {v, v, v});
+      }
+    }
+  }
+
+  void method3_2(IO::image& img){
+    double theta = 100.0;
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j));
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre (img.W, vector<ComplexNumber> (img.H));
+    for(int k = 0; k < img.W; k++){
+      for(int l = 0; l < img.H; l++){
+        fre[k][l] = FT2D(v, k, l, img.W, img.H);
+      }
+    }
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        double d = sqrt(i * i + j * j);
+        double f = 1.0 - exp(-1*(d*d)/(2.0*theta*theta));
+        fre[i][j].a *= f;
+        fre[i][j].b *= f;
+      }
+    }
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        int v = min(img.MAX_RGB, max((int)inverseFT2D(fre, i, j, img.W, img.H), 0));
+        img.setPixel(i, j, {v, v, v});
       }
     }
   }
