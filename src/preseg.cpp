@@ -252,25 +252,21 @@ namespace PRESEG{
 
   void method2(IO::image& img){
     srand(time(NULL)); // seeding rng
-    int thres = 20;
+    int thres = 10;
     int D = 5; // dimensions
     int MAX_VALUE = 300;
-    int POSWEIGTH = 100;
+    int POSWEIGTH = 15;
     vector<vector<int>> clusters = vector<vector<int>> ();
     int size = 30;
     for(int i = size/2; i < img.W; i+=size){
       for(int j = size/2; j < img.H; j+=size){
-        /*clusters.push_back({
-          mapRange(i, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
-          mapRange(j, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE) * 0,
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE) * 0,
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE) * 0
-        });*/
         clusters.push_back({
-          i, j, 0, 0, 0
+          mapRange(i, max(img.W, img.H), MAX_VALUE),
+          mapRange(j, max(img.W, img.H), MAX_VALUE),
+          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH),
+          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH),
+          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH)
         });
-        cout << i << " " << j << endl;
       }
     }
     int K = clusters.size();
@@ -290,15 +286,12 @@ namespace PRESEG{
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
         pair<int, int> m = {INT_MAX, -1};
         vector<int> pixel = img.getPixel(i, j);
-        /*vector<int> p = {
-          mapRange(i, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
-          mapRange(j, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
-          mapRange(pixel[0], img.MAX_RGB, MAX_VALUE) * 0,
-          mapRange(pixel[1], img.MAX_RGB, MAX_VALUE) * 0,
-          mapRange(pixel[2], img.MAX_RGB, MAX_VALUE) * 0
-        };*/
         vector<int> p = {
-          i, j, 0, 0, 0
+          mapRange(i, max(img.W, img.H), MAX_VALUE),
+          mapRange(j, max(img.W, img.H), MAX_VALUE),
+          mapRange(pixel[0], img.MAX_RGB, MAX_VALUE * POSWEIGTH),
+          mapRange(pixel[1], img.MAX_RGB, MAX_VALUE * POSWEIGTH),
+          mapRange(pixel[2], img.MAX_RGB, MAX_VALUE * POSWEIGTH)
         };
         for(int k = 0; k < K; k++){
           int d = dist(p, clusters[k]);
@@ -306,7 +299,7 @@ namespace PRESEG{
             m = {d, k};
           }
         }
-        cout << m.first << " " << clusters[m.second][0] << " "<< clusters[m.second][1] << " " << p[0] << " " << p[1] << endl;
+        //cout << m.first << " " << clusters[m.second][0] << " "<< clusters[m.second][1] << " " << p[0] << " " << p[1] << endl;
         clusterCount[m.second]++;
         for(int d = 0; d < D; d++){
           clusterSums[m.second][d] += p[d];
@@ -331,7 +324,6 @@ namespace PRESEG{
         }
       }
       if(!b) break;
-      break;
     }
     for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
       img.setPixel(i, j, imgColors[i][j]);
