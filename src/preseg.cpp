@@ -241,25 +241,32 @@ namespace PRESEG{
   int dist(vector<int> &v1, vector<int> &v2){
     int s = 0;
     for(int i = 0; i < v1.size(); i++){
-      s += abs(v1[i] - v2[i]);
+      s += (v1[i] - v2[i])*(v1[i] - v2[i]);
     }
-    return s;
+    return (int)sqrt(s);
+  }
+
+  int mapRange(int v, int r1, int r2){
+    return (int)((double)v/(double)r1*(double)r2);
   }
 
   void method2(IO::image& img){
     srand(time(NULL)); // seeding rng
     int K = sqrt(img.H * img.W) / 10;
-    int thres = 1;
+    int thres = 0;
     int D = 5; // dimensions
+    int MAX_VALUE = 300; // garantees a value bigger than any existing value
+    int POSWEIGTH = 3;
     vector<vector<int>> clusters = vector<vector<int>> (K);
     for(int i = 0; i < K; i++){
       clusters[i] = {
-        rand() % img.W,
-        rand() % img.H,
-        rand() % img.MAX_RGB,
-        rand() % img.MAX_RGB,
-        rand() % img.MAX_RGB
+        mapRange(rand() % img.W, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
+        mapRange(rand() % img.H, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
+        mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE),
+        mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE),
+        mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE)
       };
+      //cout << clusters[i][0] << " " << clusters[i][1] << " " << clusters[i][2] << " " << clusters[i][3] << " " << clusters[i][4] << endl;
     }
     vector<vector<int>> clusterSums = vector<vector<int>> (K, vector<int> (D));
     vector<int> clusterCount = vector<int> (K, 0);
@@ -277,7 +284,11 @@ namespace PRESEG{
         pair<int, int> m = {INT_MAX, -1};
         vector<int> pixel = img.getPixel(i, j);
         vector<int> p = {
-          i, j, pixel[0], pixel[1], pixel[2]
+          mapRange(i, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
+          mapRange(j, max(img.W, img.H), MAX_VALUE * POSWEIGTH),
+          mapRange(pixel[0], img.MAX_RGB, MAX_VALUE),
+          mapRange(pixel[1], img.MAX_RGB, MAX_VALUE),
+          mapRange(pixel[2], img.MAX_RGB, MAX_VALUE)
         };
         for(int k = 0; k < K; k++){
           int d = dist(p, clusters[k]);
@@ -293,6 +304,7 @@ namespace PRESEG{
       }
       vector<vector<int>> preClusters = clusters;
       for(int i = 0; i < K; i++){
+        if(clusterCount[i] == 0) continue;
         for(int j = 0; j < D; j++){
           clusters[i][j] = clusterSums[i][j] / clusterCount[i];
         }

@@ -13,8 +13,8 @@ int main(int argc, char const *argv[]) {
     cerr << "missing argument file" << endl;
     return 1;
   }
-  // v1 tests
-  /*IO::image img;
+  /*// v1 tests
+  IO::image img;
   IO::readPPM(argv[1], img);
   img.setPixel(2, 0, {100, 100, 100});
   IO::writePPM(argv[2], img);*/
