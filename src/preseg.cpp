@@ -255,17 +255,30 @@ namespace PRESEG{
     int thres = 10;
     int D = 5; // dimensions
     int MAX_VALUE = 300;
-    int POSWEIGTH = 15;
+    int POSWEIGTH = 5;
     vector<vector<int>> clusters = vector<vector<int>> ();
     int size = 30;
     for(int i = size/2; i < img.W; i+=size){
       for(int j = size/2; j < img.H; j+=size){
+        vector<int> rgb = vector<int> (3);
+        int c = 0;
+        for(int k = -1; k < 2; k++){
+          for(int l = -1; l < 2; l++){
+            int newI = i + k;
+            int newJ = j + l;
+            if(isInGrid(newI, newJ, img.W, img.H)){
+              vector<int> pixel = img.getPixel(newI, newJ);
+              rgb[0] += pixel[0];
+              rgb[1] += pixel[1];
+              rgb[2] += pixel[2];
+              c++;
+            }
+          }
+        }
         clusters.push_back({
-          mapRange(i, max(img.W, img.H), MAX_VALUE),
-          mapRange(j, max(img.W, img.H), MAX_VALUE),
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH),
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH),
-          mapRange(rand() % img.MAX_RGB, img.MAX_RGB, MAX_VALUE * POSWEIGTH)
+          i * POSWEIGTH,
+          j * POSWEIGTH,
+          rgb[0] / c, rgb[1] / c, rgb[2] / c
         });
       }
     }
@@ -287,11 +300,7 @@ namespace PRESEG{
         pair<int, int> m = {INT_MAX, -1};
         vector<int> pixel = img.getPixel(i, j);
         vector<int> p = {
-          mapRange(i, max(img.W, img.H), MAX_VALUE),
-          mapRange(j, max(img.W, img.H), MAX_VALUE),
-          mapRange(pixel[0], img.MAX_RGB, MAX_VALUE * POSWEIGTH),
-          mapRange(pixel[1], img.MAX_RGB, MAX_VALUE * POSWEIGTH),
-          mapRange(pixel[2], img.MAX_RGB, MAX_VALUE * POSWEIGTH)
+          i * POSWEIGTH, j * POSWEIGTH, pixel[0], pixel[1], pixel[2]
         };
         for(int k = 0; k < K; k++){
           int d = dist(p, clusters[k]);
