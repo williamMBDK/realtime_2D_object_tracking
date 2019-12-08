@@ -514,6 +514,25 @@ namespace PRESEG{
     return res;
   }
 
+  vector<ComplexNumber> ft1D_DP_inverse(vector<ComplexNumber>& v, int SIZE){
+    vector<ComplexNumber> res (SIZE, ComplexNumber (0.0, 0.0));
+    for(int k = 0; k < SIZE; k++){
+      for(int i = 0; i < SIZE; i++){
+        ComplexNumber t = complexMult(
+          ComplexNumber(
+            cos(2.0*M_PI*(double)k*(double)i/(double)SIZE),
+            sin(2.0*M_PI*(double)k*(double)i/(double)SIZE)
+          ),
+          v.at(i)
+        );
+        res[k].a += t.a;
+        res[k].b += t.b;
+      }
+    }
+    //for(int i = 0; i < SIZE; i++) res[i] = complexMult(res[i], ComplexNumber(1/(double)SIZE, 0.0));
+    return res;
+  }
+
   vector<vector<ComplexNumber>> ft2D_DP(vector<vector<double>>& v, int W, int H){
     vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
     for(int i = 0; i < W; i++){
@@ -569,20 +588,25 @@ namespace PRESEG{
       even[i/2] = v[i];
       uneven[i/2] = v[i+1];
     }
-    ComplexNumber W (
+    /*ComplexNumber W (
       1.0, 0.0
     );
     ComplexNumber WN (
       cos(-2.0*M_PI/(double)SIZE),
       sin(-2.0*M_PI/(double)SIZE)
-    );
+    );*/
     vector<ComplexNumber> res1 = fft1D(even, SIZE / 2);
     vector<ComplexNumber> res2 = fft1D(uneven, SIZE / 2);
     for(int i = 0; i < SIZE/2; i++){
-      ComplexNumber t = complexMult(W, res2[i]);
+      ComplexNumber c (
+        cos(-2.0*M_PI*i/(double)SIZE),
+        sin(-2.0*M_PI*i/(double)SIZE)
+      );
+      ComplexNumber t = complexMult(c, res2[i]);
+      //ComplexNumber t = complexMult(W, res2[i]);
       res[i] = complexAdd(res1[i], t);
       res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
-      W = complexMult(W, WN);
+      //W = complexMult(W, WN);
     }
     return res;
   }
@@ -620,20 +644,31 @@ namespace PRESEG{
       even[i/2] = v[i];
       uneven[i/2] = v[i+1];
     }
-    ComplexNumber W (
+    /*ComplexNumber W (
       1.0, 0.0
     );
     ComplexNumber WN (
       cos(2.0*M_PI/(double)SIZE),
       sin(2.0*M_PI/(double)SIZE)
-    );
-    vector<ComplexNumber> res1 = fft1D(even, SIZE / 2);
-    vector<ComplexNumber> res2 = fft1D(uneven, SIZE / 2);
+    );*/
+    vector<ComplexNumber> res1 = fft1D_inverse(even, SIZE / 2);
+    vector<ComplexNumber> res2 = fft1D_inverse(uneven, SIZE / 2);
     for(int i = 0; i < SIZE/2; i++){
-      ComplexNumber t = complexMult(W, res2[i]);
+      ComplexNumber c (
+        cos(2.0*M_PI*i/(double)SIZE),
+        sin(2.0*M_PI*i/(double)SIZE)
+      );
+      ComplexNumber t = complexMult(c, res2[i]);
+      //ComplexNumber t = complexMult(W, res2[i]);
       res[i] = complexAdd(res1[i], t);
       res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
-      W = complexMult(W, WN);
+      /*res[i] = complexMult(res[i], ComplexNumber(
+        1.0/(double)SIZE, 0.0
+      ));
+      res[i + SIZE/2] = complexMult(res[i + SIZE/2], ComplexNumber(
+        1.0/(double)SIZE, 0.0
+      ));*/
+      //W = complexMult(W, WN);
     }
     return res;
   }
@@ -646,17 +681,21 @@ namespace PRESEG{
         vZ[y] = v[u][y];
       }
       vector<ComplexNumber> t = fft1D_inverse(vZ, H);
+      /*vector<ComplexNumber> t2 = ft1D_DP_inverse(vZ, H);
+      for(int i = 0; i < H; i++){
+        cout << t1[i].a << " " << t1[i].b << "    " << t2[i].a << " " << t2[i].b << endl;
+      }*/
       for(int y = 0; y < H; y++){
-        coloums[y][u] = complexMult(t[y], ComplexNumber(
-          1.0/(double)H, 0.0
-        ));
+        //coloums[y][u] = t[y];
+        coloums[y][u] = complexMult(t[y], ComplexNumber(1.0/((double) H), 0.0));
       }
     }
     vector<vector<double>> res (W, vector<double> (H));
     for(int y = 0; y < H; y++){
       vector<ComplexNumber> t = fft1D_inverse(coloums[y], W);
       for(int x = 0; x < W; x++){
-        res[x][y] = t[x].a / (double)W;
+        res[x][y] = t[x].a / ((double) (W));
+        //res[x][y] = t[x].a;
       }
     }
     return res;
@@ -695,9 +734,9 @@ namespace PRESEG{
     vector<vector<double>> res = fft2D_inverse(fre, img.W, img.H);
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        //cout << res[i][j] << endl;
-        int v = min(img.MAX_RGB, (int)max(res[i][j] * (double)img.MAX_RGB, 0.0));
-        img.setPixel(i, j, {v, v, v});
+        int t = min(img.MAX_RGB, max((int)(res[i][j] * (double)img.MAX_RGB), 0));
+        //cout << t << " " << res[i][j] << endl;
+        img.setPixel(i, j, {t, t, t});
       }
     }
   }

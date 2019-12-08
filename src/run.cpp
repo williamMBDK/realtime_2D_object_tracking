@@ -65,7 +65,7 @@ int main(int argc, char const *argv[]) {
   //PRESEG::FFT_spectrum(img);
 
   // FFT general test
-  PRESEG::FFT_test(img);
+  //PRESEG::FFT_test(img);
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
