@@ -326,7 +326,7 @@ namespace PRESEG{
       bool b = false;
       for(int i = 0; i < K; i++){
         if(dist(preClusters[i], clusters[i]) > thres){
-          cout << dist(preClusters[i], clusters[i]) << endl;
+          //cout << dist(preClusters[i], clusters[i]) << endl;
           b = true;
           break;
         }
@@ -361,7 +361,7 @@ namespace PRESEG{
     return res;
   }
 
-  void FFT_spectrum(IO::image& img){
+  void FT_spectrum(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
@@ -526,7 +526,7 @@ namespace PRESEG{
     return res;
   }
 
-  void FFT_spectrum_dp(IO::image& img){
+  void FT_spectrum_dp(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
@@ -547,9 +547,40 @@ namespace PRESEG{
     }
   }
 
+  ComplexNumber complexAdd(ComplexNumber a, ComplexNumber b){
+    return ComplexNumber(
+      a.a + b.a,
+      a.b + b.b
+    );
+  }
+
+  // compute res. vary y and v or vary x and u.
   vector<ComplexNumber> fft1D(vector<ComplexNumber> &v, int SIZE){
+    if(SIZE == 1){
+      return {v[0]};
+    }
     vector<ComplexNumber> res (SIZE);
-    // compute res. vary y and v or vary x and u.
+    vector<ComplexNumber> even (SIZE / 2);
+    vector<ComplexNumber> uneven (SIZE / 2);
+    for(int i = 0; i < SIZE; i+=2){
+      even[i/2] = v[i];
+      uneven[i/2] = v[i+1];
+    }
+    ComplexNumber W (
+      1.0, 0.0
+    );
+    ComplexNumber WN (
+      cos(-2.0*M_PI/(double)SIZE),
+      sin(-2.0*M_PI/(double)SIZE)
+    );
+    vector<ComplexNumber> res1 = fft1D(even, SIZE / 2);
+    vector<ComplexNumber> res2 = fft1D(uneven, SIZE / 2);
+    for(int i = 0; i < SIZE/2; i++){
+      ComplexNumber t = complexMult(W, res2[i]);
+      res[i] = complexAdd(res1[i], t);
+      res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
+      W = complexMult(W, WN);
+    }
     return res;
   }
 
@@ -565,14 +596,35 @@ namespace PRESEG{
         coloums[j][i] = t[j];
       }
     }
-    vector<vector<ComplexNumber>> res (W);
+    vector<vector<ComplexNumber>> res (W, vector<ComplexNumber> (H));
     for(int i = 0; i < H; i++){
-      vector<ComplexNumber> t = fft1D(res[i], W);
+      vector<ComplexNumber> t = fft1D(coloums[i], W);
       for(int j = 0; j < W; j++){
         res[j][i] = t[j];
       }
     }
     return res;
+  }
+
+  void FFT_spectrum(IO::image& img){
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
+    for(int i = 0; i < img.W/2; i++){
+      for(int j = 0; j < img.H/2; j++){
+        int length = sqrt(fre[i][j].a * fre[i][j].a + fre[i][j].b * fre[i][j].b);
+        img.setPixel(img.W/2 + i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 + i, img.H/2 - j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 - j, {length, length, length});
+      }
+    }
   }
 
   /*vector<vector<ComplexNumber>> ft_all(vector<vector<double>>& v, int W, int H){

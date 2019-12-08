@@ -13,6 +13,10 @@ int main(int argc, char const *argv[]) {
     cerr << "missing argument file" << endl;
     return 1;
   }
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  auto start = chrono::high_resolution_clock::now();
+
   /*// v1 tests
   IO::image img;
   IO::readPPM(argv[1], img);
@@ -57,17 +61,11 @@ int main(int argc, char const *argv[]) {
   PRESEG::method1_3(img);
   IO::writePPM(argv[2], img);*/
 
-  /*// k means (method 2)
-  IO::image img;
-  IO::readPPM(argv[1], img);
+  // k means (method 2)
   PRESEG::method2(img);
-  IO::writePPM(argv[2], img);*/
 
-  /*// FT spectrum test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::FFT_spectrum(img);
-  IO::writePPM(argv[2], img);*/
+  // FT spectrum test
+  //PRESEG::FT_spectrum(img);
 
   /*// methods 3.1 : FT
   IO::image img;
@@ -81,9 +79,14 @@ int main(int argc, char const *argv[]) {
   PRESEG::method3_2(img);
   IO::writePPM(argv[2], img);*/
 
-  /*// FT spectrum dp test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::FFT_spectrum_dp(img);
-  IO::writePPM(argv[2], img);*/
+  // FT spectrum dp test
+  //PRESEG::FT_spectrum_dp(img);
+
+  // FFT spectrum dp test
+  //PRESEG::FFT_spectrum(img);
+
+  auto stop = chrono::high_resolution_clock::now();
+  IO::writePPM(argv[2], img);
+  double duration = ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
+  cout << "Execution time: " << duration << " ms, excluding IO" << endl;
 }
