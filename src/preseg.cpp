@@ -609,6 +609,59 @@ namespace PRESEG{
     return res;
   }
 
+  vector<ComplexNumber> fft1D_inverse(vector<ComplexNumber> &v, int SIZE){
+    if(SIZE == 1){
+      return {v[0]};
+    }
+    vector<ComplexNumber> res (SIZE);
+    vector<ComplexNumber> even (SIZE / 2);
+    vector<ComplexNumber> uneven (SIZE / 2);
+    for(int i = 0; i < SIZE; i+=2){
+      even[i/2] = v[i];
+      uneven[i/2] = v[i+1];
+    }
+    ComplexNumber W (
+      1.0, 0.0
+    );
+    ComplexNumber WN (
+      cos(2.0*M_PI/(double)SIZE),
+      sin(2.0*M_PI/(double)SIZE)
+    );
+    vector<ComplexNumber> res1 = fft1D(even, SIZE / 2);
+    vector<ComplexNumber> res2 = fft1D(uneven, SIZE / 2);
+    for(int i = 0; i < SIZE/2; i++){
+      ComplexNumber t = complexMult(W, res2[i]);
+      res[i] = complexAdd(res1[i], t);
+      res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
+      W = complexMult(W, WN);
+    }
+    return res;
+  }
+
+  vector<vector<double>> fft2D_inverse(vector<vector<ComplexNumber>>& v, int W, int H){
+    vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[y][u]
+    for(int u = 0; u < W; u++){
+      vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
+      for(int y = 0; y < H; y++){
+        vZ[y] = v[u][y];
+      }
+      vector<ComplexNumber> t = fft1D_inverse(vZ, H);
+      for(int y = 0; y < H; y++){
+        coloums[y][u] = complexMult(t[y], ComplexNumber(
+          1.0/(double)H, 0.0
+        ));
+      }
+    }
+    vector<vector<double>> res (W, vector<double> (H));
+    for(int y = 0; y < H; y++){
+      vector<ComplexNumber> t = fft1D_inverse(coloums[y], W);
+      for(int x = 0; x < W; x++){
+        res[x][y] = t[x].a / (double)W;
+      }
+    }
+    return res;
+  }
+
   void FFT_spectrum(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -626,6 +679,25 @@ namespace PRESEG{
         img.setPixel(img.W/2 - i, img.H/2 + j, {length, length, length});
         img.setPixel(img.W/2 + i, img.H/2 - j, {length, length, length});
         img.setPixel(img.W/2 - i, img.H/2 - j, {length, length, length});
+      }
+    }
+  }
+
+  void FFT_test(IO::image& img){
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
+      }
+    }
+    vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
+    vector<vector<double>> res = fft2D_inverse(fre, img.W, img.H);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        //cout << res[i][j] << endl;
+        int v = min(img.MAX_RGB, (int)max(res[i][j] * (double)img.MAX_RGB, 0.0));
+        img.setPixel(i, j, {v, v, v});
       }
     }
   }

@@ -64,6 +64,9 @@ int main(int argc, char const *argv[]) {
   // FFT spectrum dp test
   //PRESEG::FFT_spectrum(img);
 
+  // FFT general test
+  PRESEG::FFT_test(img);
+
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
   double duration = ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
