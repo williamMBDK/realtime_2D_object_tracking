@@ -749,10 +749,10 @@ namespace PRESEG{
     double DMAX = min(img.W, img.H) * FMAX;
     double FMIN = 0.3;
     double DMIN = min(img.W, img.H) * FMIN;
-    DMIN = 5;
-    DMAX = 1000000000;
+    DMIN = 40;
+    DMAX = 60;
     double contrastFactor = 2.0;
-    cout << DMIN << " " << DMAX << endl;
+    //cout << DMIN << " " << DMAX << endl;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
@@ -766,11 +766,12 @@ namespace PRESEG{
       for(int j = 0; j < img.H; j++){
         //double d = sqrt(pow(i, 2) + pow(j, 2));
         //double d = sqrt(pow(fre[i][j].a, 2.0) + pow(fre[i][j].b, 2.0));
-        double d = min(
+        /*double d = min(
           min(i, j), min(img.W - i, img.H - j)
-        );
+        );*/
+        double d = doubleDist({0.0, 0.0}, {img.W/2.0, img.W/2.0}) - doubleDist({(double)i, (double)j}, {img.W/2.0, img.W/2.0});
         if(d > DMAX || d < DMIN){
-          cout << d << endl;
+          //cout << d << endl;
           fre[i][j] = ComplexNumber(0.0, 0.0);
         }else{
           fre[i][j] = complexMult(fre[i][j], ComplexNumber(contrastFactor, 0));
