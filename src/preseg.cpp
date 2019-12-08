@@ -69,6 +69,8 @@ namespace PRESEG{
         band-pass-filter
       3.2
         gaussian low pass filter
+      3.3
+        fft band pass filter
     */
 
   // utility
@@ -736,6 +738,38 @@ namespace PRESEG{
       for(int j = 0; j < img.H; j++){
         int t = min(img.MAX_RGB, max((int)(res[i][j] * (double)img.MAX_RGB), 0));
         //cout << t << " " << res[i][j] << endl;
+        img.setPixel(i, j, {t, t, t});
+      }
+    }
+  }
+
+  void method3_3(IO::image& img){
+    double FMAX = 0.6;
+    double DMAX = min(img.W, img.H) * FMAX;
+    double FMIN = 0.3;
+    double DMIN = min(img.W, img.H) * FMIN;
+    cout << DMIN << " " << DMAX << endl;
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j));
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        double d = sqrt(pow(i - img.W / 2.0, 2) + pow(j - img.H / 2.0, 2));
+        if(d > DMAX || d < DMIN){
+          fre[i][j] = ComplexNumber(0.0, 0.0);
+        }
+      }
+    }
+    vector<vector<double>> res = fft2D_inverse(fre, img.W, img.H);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        int t = min(img.MAX_RGB, max((int)res[i][j], 0));
         img.setPixel(i, j, {t, t, t});
       }
     }
