@@ -169,7 +169,7 @@ namespace PRESEG{
 
   // memory optimize dp
   void method1_3(IO::image& img){
-    int N_MAX = 2000;
+    int N_MAX = 20;
     double dT = 0.1;
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
@@ -730,13 +730,14 @@ namespace PRESEG{
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
+        //cout << brightness(img.getPixel(i, j)) << " " << img.getPixel(i, j)[0] << " " << img.getPixel(i, j)[1] << " " << img.getPixel(i, j)[2] << " " << endl;
       }
     }
     vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
     vector<vector<double>> res = fft2D_inverse(fre, img.W, img.H);
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        int t = min(img.MAX_RGB, max((int)(res[i][j] * (double)img.MAX_RGB), 0));
+        int t = min(img.MAX_RGB, max((int)(v[i][j] * (double)img.MAX_RGB), 0));
         //cout << t << " " << res[i][j] << endl;
         img.setPixel(i, j, {t, t, t});
       }
@@ -744,7 +745,7 @@ namespace PRESEG{
   }
 
   void method3_3(IO::image& img){
-    double FMAX = 0.6;
+    double FMAX = 0.7;
     double DMAX = min(img.W, img.H) * FMAX;
     double FMIN = 0.3;
     double DMIN = min(img.W, img.H) * FMIN;
