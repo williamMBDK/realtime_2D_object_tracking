@@ -58,6 +58,8 @@ namespace PRESEG{
     METHOD 1.5
       udvidelse. kør en metode flere gange og byg en ny graf hver gang, der kigger på alle naboer til en knude på mappet. O(logn * n * STOR_CONSTANT) antallet af knuder vil altid mindst halveres.
       Når den nye graf bygges svarer det til et graphcut.
+    METHOD 1.6
+      experimential
     METHOD 2:
       k-means clusering with k-means++
       dimensions:
@@ -67,15 +69,101 @@ namespace PRESEG{
         band-pass-filter
       3.2
         gaussian low pass filter
-  */
+    */
 
-  int brightness(vector<int> pixel){
-    return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
-  }
+  // utility
+    int brightness(vector<int> pixel){
+      return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
+    }
 
-  bool isInGrid(int x, int y, int W, int H){
-    return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
-  }
+    bool isInGrid(int x, int y, int W, int H){
+      return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
+    }
+
+    int dist(vector<int> &v1, vector<int> &v2){
+      int s = 0;
+      for(int i = 0; i < v1.size(); i++){
+        s += (v1[i] - v2[i])*(v1[i] - v2[i]);
+      }
+      return (int)sqrt(s);
+    }
+
+    int mapRange(int v, int r1, int r2){
+      return (int)((double)v/(double)r1*(double)r2);
+    }
+
+    struct ComplexNumber{
+      double a;
+      double b;
+      ComplexNumber(){};
+      ComplexNumber(double a, double b){
+        this->a = a;
+        this->b = b;
+      }
+    };
+
+    double doubleDist(vector<double> v1, vector<double> v2){
+      double s = 0;
+      for(int i = 0; i < v1.size(); i++){
+        s += (v1[i] - v2[i])*(v1[i] - v2[i]);
+      }
+      return sqrt(s);
+    }
+
+    ComplexNumber complexMult(ComplexNumber a, ComplexNumber b){
+      ComplexNumber res (
+        (a.a * b.a - a.b * b.b),
+        (a.a * b.b + a.b * b.a)
+      );
+      return res;
+    }
+
+    ComplexNumber complexAdd(ComplexNumber a, ComplexNumber b){
+      return ComplexNumber(
+        a.a + b.a,
+        a.b + b.b
+      );
+    }
+
+  // can be optimized by removing previous dp
+  void method1_1(IO::image& img){
+      int tMax = 200, K = 5;
+      vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
+      for(int i = 0; i < img.W; i++){
+        for(int j = 0; j < img.H; j++){
+          dp[i][j][0] = pow(brightness(img.getPixel(i, j)), 2);
+        }
+      }
+      vector<pair<int, int>> dirs = {
+        {-1, 0}, {0, -1}, {1, 0}, {0, 1}
+      };
+      for(int t = 1; t < tMax; t++){
+        for(int i = 0; i < img.W; i++){
+          for(int j = 0; j < img.H; j++){
+            dp[i][j][t] = dp[i][j][t-1];
+            int m = INT_MAX;
+            for(int k = 0; k < 4; k++){
+              int newI = i + dirs[k].first;
+              int newJ = j + dirs[k].second;
+              if(isInGrid(newI, newJ, img.W, img.H) &&
+                 abs(dp[newI][newJ][t-1] - dp[i][j][t-1]) < abs(m)
+              ){
+                m = dp[newI][newJ][t-1] - dp[i][j][t-1];
+              }
+            }
+            dp[i][j][t] += m;
+          }
+        }
+      }
+      for(int i = 0; i < img.W; i++){
+        for(int j = 0; j < img.H; j++){
+          dp[i][j][tMax - 1] = sqrt(dp[i][j][tMax - 1]);
+          dp[i][j][tMax - 1] = min(dp[i][j][tMax - 1], img.MAX_RGB);
+          dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
+          img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
+        }
+      }
+    }
 
   // memory optimize dp
   void method1_3(IO::image& img){
@@ -164,47 +252,7 @@ namespace PRESEG{
     }
   }
 
-  // can be optimized by removing previous dp
-  void method1_1(IO::image& img){
-    int tMax = 200, K = 5;
-    vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
-    for(int i = 0; i < img.W; i++){
-      for(int j = 0; j < img.H; j++){
-        dp[i][j][0] = pow(brightness(img.getPixel(i, j)), 2);
-      }
-    }
-    vector<pair<int, int>> dirs = {
-      {-1, 0}, {0, -1}, {1, 0}, {0, 1}
-    };
-    for(int t = 1; t < tMax; t++){
-      for(int i = 0; i < img.W; i++){
-        for(int j = 0; j < img.H; j++){
-          dp[i][j][t] = dp[i][j][t-1];
-          int m = INT_MAX;
-          for(int k = 0; k < 4; k++){
-            int newI = i + dirs[k].first;
-            int newJ = j + dirs[k].second;
-            if(isInGrid(newI, newJ, img.W, img.H) &&
-               abs(dp[newI][newJ][t-1] - dp[i][j][t-1]) < abs(m)
-            ){
-              m = dp[newI][newJ][t-1] - dp[i][j][t-1];
-            }
-          }
-          dp[i][j][t] += m;
-        }
-      }
-    }
-    for(int i = 0; i < img.W; i++){
-      for(int j = 0; j < img.H; j++){
-        dp[i][j][tMax - 1] = sqrt(dp[i][j][tMax - 1]);
-        dp[i][j][tMax - 1] = min(dp[i][j][tMax - 1], img.MAX_RGB);
-        dp[i][j][tMax - 1] = max(dp[i][j][tMax - 1], 0);
-        img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
-      }
-    }
-  }
-
-  void experimential(IO::image& img){
+  void method1_6(IO::image& img){
     srand(time(NULL));
     int tMax = 200, K = 5;
     vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
@@ -241,18 +289,6 @@ namespace PRESEG{
         img.setPixel(i, j, {dp[i][j][tMax - 1], dp[i][j][tMax - 1], dp[i][j][tMax - 1]});
       }
     }
-  }
-
-  int dist(vector<int> &v1, vector<int> &v2){
-    int s = 0;
-    for(int i = 0; i < v1.size(); i++){
-      s += (v1[i] - v2[i])*(v1[i] - v2[i]);
-    }
-    return (int)sqrt(s);
-  }
-
-  int mapRange(int v, int r1, int r2){
-    return (int)((double)v/(double)r1*(double)r2);
   }
 
   void method2(IO::image& img){
@@ -338,17 +374,7 @@ namespace PRESEG{
     }
   }
 
-  struct ComplexNumber{
-    double a;
-    double b;
-    ComplexNumber(){};
-    ComplexNumber(double a, double b){
-      this->a = a;
-      this->b = b;
-    }
-  };
-
-  ComplexNumber FT2D(vector<vector<double>>& v, int k, int l, int W, int H){
+  ComplexNumber ft1d_naive(vector<vector<double>>& v, int k, int l, int W, int H){
     ComplexNumber res (0.0, 0.0);
     for(int i = 0; i < W; i++){
       for(int j = 0; j < H; j++){
@@ -373,7 +399,7 @@ namespace PRESEG{
     vector<vector<ComplexNumber>> fre (img.W, vector<ComplexNumber> (img.H));
     for(int k = 0; k < img.W; k++){
       for(int l = 0; l < img.H; l++){
-        fre[k][l] = FT2D(v, k, l, img.W, img.H);
+        fre[k][l] = ft1d_naive(v, k, l, img.W, img.H);
       }
     }
     for(int i = 0; i < img.W/2; i++){
@@ -387,15 +413,7 @@ namespace PRESEG{
     }
   }
 
-  double doubleDist(vector<double> v1, vector<double> v2){
-    double s = 0;
-    for(int i = 0; i < v1.size(); i++){
-      s += (v1[i] - v2[i])*(v1[i] - v2[i]);
-    }
-    return sqrt(s);
-  }
-
-  double inverseFT2D(vector<vector<ComplexNumber>> &fre, int i, int j, int W, int H){
+  double ft1d_naive_inverse(vector<vector<ComplexNumber>> &fre, int i, int j, int W, int H){
     ComplexNumber res (0.0, 0.0);
     for(int k = 0; k < W; k++){
       for(int l = 0; l < H; l++){
@@ -426,7 +444,7 @@ namespace PRESEG{
     vector<vector<ComplexNumber>> fre (img.W, vector<ComplexNumber> (img.H));
     for(int k = 0; k < img.W; k++){
       for(int l = 0; l < img.H; l++){
-        fre[k][l] = FT2D(v, k, l, img.W, img.H);
+        fre[k][l] = ft1d_naive(v, k, l, img.W, img.H);
       }
     }
     for(int i = 0; i < img.W; i++){
@@ -439,7 +457,7 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        int v = min(img.MAX_RGB, max((int)inverseFT2D(fre, i, j, img.W, img.H), 0));
+        int v = min(img.MAX_RGB, max((int)ft1d_naive_inverse(fre, i, j, img.W, img.H), 0));
         img.setPixel(i, j, {v, v, v});
       }
     }
@@ -459,7 +477,7 @@ namespace PRESEG{
     vector<vector<ComplexNumber>> fre (img.W, vector<ComplexNumber> (img.H));
     for(int k = 0; k < img.W; k++){
       for(int l = 0; l < img.H; l++){
-        fre[k][l] = FT2D(v, k, l, img.W, img.H);
+        fre[k][l] = ft1d_naive(v, k, l, img.W, img.H);
       }
     }
     for(int i = 0; i < img.W; i++){
@@ -472,18 +490,10 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        int v = min(img.MAX_RGB, max((int)inverseFT2D(fre, i, j, img.W, img.H), 0));
+        int v = min(img.MAX_RGB, max((int)ft1d_naive_inverse(fre, i, j, img.W, img.H), 0));
         img.setPixel(i, j, {v, v, v});
       }
     }
-  }
-
-  ComplexNumber complexMult(ComplexNumber a, ComplexNumber b){
-    ComplexNumber res (
-      (a.a * b.a - a.b * b.b),
-      (a.a * b.b + a.b * b.a)
-    );
-    return res;
   }
 
   vector<ComplexNumber> ft1D_DP(vector<ComplexNumber>& v, int SIZE){
@@ -545,13 +555,6 @@ namespace PRESEG{
         img.setPixel(img.W/2 - i, img.H/2 - j, {length, length, length});
       }
     }
-  }
-
-  ComplexNumber complexAdd(ComplexNumber a, ComplexNumber b){
-    return ComplexNumber(
-      a.a + b.a,
-      a.b + b.b
-    );
   }
 
   // compute res. vary y and v or vary x and u.
@@ -626,20 +629,4 @@ namespace PRESEG{
       }
     }
   }
-
-  /*vector<vector<ComplexNumber>> ft_all(vector<vector<double>>& v, int W, int H){
-    for(int x = 0; x < W; x++){
-      vector<ComplexNumber> res = FT1D(x, v[x], H);
-      ComplexNumber sum (0.0, 0.0);
-      for(int j = 0; j < res.size(); j++){
-        sum.a += res[j].a;
-        sum.b += res[j].b;
-      }
-      ComplexNumber c = (
-        double a = cos(-2.0*M_PI*(double)k*(double)x/(double)W);
-        double b = sin(-2.0*M_PI*(double)k*(double)x/(double)W);
-      );
-
-    }
-  }*/
 }

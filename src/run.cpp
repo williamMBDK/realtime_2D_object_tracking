@@ -17,67 +17,46 @@ int main(int argc, char const *argv[]) {
   IO::readPPM(argv[1], img);
   auto start = chrono::high_resolution_clock::now();
 
-  /*// v1 tests
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  img.setPixel(2, 0, {100, 100, 100});
-  IO::writePPM(argv[2], img);*/
+  // v1 tests
+  //img.setPixel(2, 0, {100, 100, 100});
 
   // v2 tests
-  /*IO::image img;
-  IO::readPPM(argv[1], img);
-  pair<int, int> backgroundPixel, foregroundPixel;
+  /*pair<int, int> backgroundPixel, foregroundPixel;
   cout << "background pixel (0-indexed, x, y): ";
   cin >> backgroundPixel.first >> backgroundPixel.second;
   cout << "foreground pixel (0-indexed, x, y): ";
   cin >> foregroundPixel.first >> foregroundPixel.second;
-  DATA::flow_graph flowGraph = DATA::imageToFlowGraph(img, backgroundPixel, foregroundPixel);
+  DATA::flow_graph flowGraph = DATA::imageToFlowGraph(img, backgroundPixel, foregroundPixel);*/
+
   //printFlowGraph(flowGraph);
-  vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
+  /*vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
   DATA::printMinCutImage(min_cut, img);
-  DATA::applyMinCutOnImage(img, min_cut);
-  IO::writePPM(argv[2], img);*/
+  DATA::applyMinCutOnImage(img, min_cut);*/
 
   /*// heuristic: avgDiff test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  cout << HEU::avgDiff(img) << endl;*/
+  cout << HEU::avgDiff(img) << endl;
+  return 0;*/
 
   /*// presegmentation method 1.1 test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::method1_1(img);
-  IO::writePPM(argv[2], img);*/
+  PRESEG::method1_1(img);*/
 
   /*// presegmentation experimential test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::experimential(img);
-  IO::writePPM(argv[2], img);*/
+  PRESEG::experimential(img);*/
 
   /*// presegmentation method 1.3 test
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::method1_3(img);
-  IO::writePPM(argv[2], img);*/
+  PRESEG::method1_3(img);*/
 
   // k means (method 2)
-  PRESEG::method2(img);
+  //PRESEG::method2(img);
 
   // FT spectrum test
   //PRESEG::FT_spectrum(img);
 
   /*// methods 3.1 : FT
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::method3_1(img);
-  IO::writePPM(argv[2], img);*/
+  PRESEG::method3_1(img);*/
 
   /*// methods 3.2 : FT
-  IO::image img;
-  IO::readPPM(argv[1], img);
-  PRESEG::method3_2(img);
-  IO::writePPM(argv[2], img);*/
+  PRESEG::method3_2(img);*/
 
   // FT spectrum dp test
   //PRESEG::FT_spectrum_dp(img);
