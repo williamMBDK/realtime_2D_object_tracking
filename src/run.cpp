@@ -68,11 +68,11 @@ int main(int argc, char const *argv[]) {
   //PRESEG::FFT_test(img);
 
   // method 3.3
-  //PRESEG::method3_3(img);
+  PRESEG::method3_3(img);
 
   // method 1.3 + 3.3
-  PRESEG::method1_3(img);
-  PRESEG::method3_3(img);
+  /*PRESEG::method1_3(img);
+  PRESEG::method3_3(img);*/
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);

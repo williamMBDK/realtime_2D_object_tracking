@@ -70,7 +70,7 @@ namespace PRESEG{
       3.2
         gaussian low pass filter
       3.3
-        fft band pass filter
+        fft band pass filter and contrast enhancement
     */
 
   // utility
@@ -749,6 +749,9 @@ namespace PRESEG{
     double DMAX = min(img.W, img.H) * FMAX;
     double FMIN = 0.3;
     double DMIN = min(img.W, img.H) * FMIN;
+    DMIN = 5;
+    DMAX = 1000000000;
+    double contrastFactor = 2.0;
     cout << DMIN << " " << DMAX << endl;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -761,9 +764,16 @@ namespace PRESEG{
     vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        double d = sqrt(pow(i - img.W / 2.0, 2) + pow(j - img.H / 2.0, 2));
+        //double d = sqrt(pow(i, 2) + pow(j, 2));
+        //double d = sqrt(pow(fre[i][j].a, 2.0) + pow(fre[i][j].b, 2.0));
+        double d = min(
+          min(i, j), min(img.W - i, img.H - j)
+        );
         if(d > DMAX || d < DMIN){
+          cout << d << endl;
           fre[i][j] = ComplexNumber(0.0, 0.0);
+        }else{
+          fre[i][j] = complexMult(fre[i][j], ComplexNumber(contrastFactor, 0));
         }
       }
     }
