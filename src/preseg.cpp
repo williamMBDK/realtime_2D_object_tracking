@@ -411,9 +411,9 @@ namespace PRESEG{
   }
 
   void method3_1(IO::image& img){
-    int FMAX = 1;
+    int FMAX = 2;
     int DMAX = min(img.W, img.H) / FMAX;
-    int FMIN = 2;
+    int FMIN = 6;
     int DMIN = min(img.W, img.H) / FMIN;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -431,7 +431,7 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        int d = sqrt(i * i + j * j);
+        int d = sqrt(pow(i - img.W / 2, 2) + pow(j - img.H / 2, 2));
         if(d > DMAX || d < DMIN){
           fre[i][j] = ComplexNumber(0.0, 0.0);
         }
@@ -446,7 +446,8 @@ namespace PRESEG{
   }
 
   void method3_2(IO::image& img){
-    double theta = 100.0;
+    double theta = 100;
+    double a = 0, b = 1;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
@@ -464,7 +465,7 @@ namespace PRESEG{
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         double d = sqrt(i * i + j * j);
-        double f = 1.0 - exp(-1*(d*d)/(2.0*theta*theta));
+        double f = a + b * (1.0 - exp(-1*(d*d)/(2.0*theta*theta)));
         fre[i][j].a *= f;
         fre[i][j].b *= f;
       }
@@ -476,4 +477,117 @@ namespace PRESEG{
       }
     }
   }
+
+  ComplexNumber complexMult(ComplexNumber a, ComplexNumber b){
+    ComplexNumber res (
+      (a.a * b.a - a.b * b.b),
+      (a.a * b.b + a.b * b.a)
+    );
+    return res;
+  }
+
+  vector<ComplexNumber> ft1D_DP(vector<ComplexNumber>& v, int SIZE){
+    vector<ComplexNumber> res (SIZE, ComplexNumber (0.0, 0.0));
+    for(int k = 0; k < SIZE; k++){
+      for(int i = 0; i < SIZE; i++){
+        ComplexNumber t = complexMult(
+          ComplexNumber(
+            cos(-2.0*M_PI*(double)k*(double)i/(double)SIZE),
+            sin(-2.0*M_PI*(double)k*(double)i/(double)SIZE)
+          ),
+          v.at(i)
+        );
+        res[k].a += t.a;
+        res[k].b += t.b;
+      }
+    }
+    return res;
+  }
+
+  vector<vector<ComplexNumber>> ft2D_DP(vector<vector<double>>& v, int W, int H){
+    vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
+    for(int i = 0; i < W; i++){
+      vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
+      for(int j = 0; j < H; j++){
+        vZ[j] = ComplexNumber (v[i][j], 0.0);
+      }
+      vector<ComplexNumber> t = ft1D_DP(vZ, H);
+      for(int j = 0; j < H; j++){
+        coloums[j][i] = t[j];
+      }
+    }
+    vector<vector<ComplexNumber>> res (W, vector<ComplexNumber> (H));
+    for(int i = 0; i < H; i++){
+      vector<ComplexNumber> t = ft1D_DP(coloums[i], W);
+      for(int j = 0; j < W; j++){
+        res[j][i] = t[j];
+      }
+    }
+    return res;
+  }
+
+  void FFT_spectrum_dp(IO::image& img){
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre = ft2D_DP(v, img.W, img.H);
+    for(int i = 0; i < img.W/2; i++){
+      for(int j = 0; j < img.H/2; j++){
+        int length = sqrt(fre[i][j].a * fre[i][j].a + fre[i][j].b * fre[i][j].b);
+        img.setPixel(img.W/2 + i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 + j, {length, length, length});
+        img.setPixel(img.W/2 + i, img.H/2 - j, {length, length, length});
+        img.setPixel(img.W/2 - i, img.H/2 - j, {length, length, length});
+      }
+    }
+  }
+
+  vector<ComplexNumber> fft1D(vector<ComplexNumber> &v, int SIZE){
+    vector<ComplexNumber> res (SIZE);
+    // compute res. vary y and v or vary x and u.
+    return res;
+  }
+
+  vector<vector<ComplexNumber>> fft2D(vector<vector<double>>& v, int W, int H){
+    vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
+    for(int i = 0; i < W; i++){
+      vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
+      for(int j = 0; j < H; j++){
+        vZ[j] = ComplexNumber (v[i][j], 0.0);
+      }
+      vector<ComplexNumber> t = fft1D(vZ, H);
+      for(int j = 0; j < H; j++){
+        coloums[j][i] = t[j];
+      }
+    }
+    vector<vector<ComplexNumber>> res (W);
+    for(int i = 0; i < H; i++){
+      vector<ComplexNumber> t = fft1D(res[i], W);
+      for(int j = 0; j < W; j++){
+        res[j][i] = t[j];
+      }
+    }
+    return res;
+  }
+
+  /*vector<vector<ComplexNumber>> ft_all(vector<vector<double>>& v, int W, int H){
+    for(int x = 0; x < W; x++){
+      vector<ComplexNumber> res = FT1D(x, v[x], H);
+      ComplexNumber sum (0.0, 0.0);
+      for(int j = 0; j < res.size(); j++){
+        sum.a += res[j].a;
+        sum.b += res[j].b;
+      }
+      ComplexNumber c = (
+        double a = cos(-2.0*M_PI*(double)k*(double)x/(double)W);
+        double b = sin(-2.0*M_PI*(double)k*(double)x/(double)W);
+      );
+
+    }
+  }*/
 }

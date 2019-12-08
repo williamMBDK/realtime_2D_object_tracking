@@ -63,21 +63,27 @@ int main(int argc, char const *argv[]) {
   PRESEG::method2(img);
   IO::writePPM(argv[2], img);*/
 
-  /*// FFT spectrum test
+  /*// FT spectrum test
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::FFT_spectrum(img);
   IO::writePPM(argv[2], img);*/
 
-  // methods 3.1 : FFT
-  /*IO::image img;
+  /*// methods 3.1 : FT
+  IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::method3_1(img);
   IO::writePPM(argv[2], img);*/
 
-  // methods 3.2 : FFT
+  /*// methods 3.2 : FT
   IO::image img;
   IO::readPPM(argv[1], img);
   PRESEG::method3_2(img);
-  IO::writePPM(argv[2], img);
+  IO::writePPM(argv[2], img);*/
+
+  /*// FT spectrum dp test
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  PRESEG::FFT_spectrum_dp(img);
+  IO::writePPM(argv[2], img);*/
 }
