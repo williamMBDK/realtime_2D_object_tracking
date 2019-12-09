@@ -71,6 +71,8 @@ namespace PRESEG{
         gaussian low pass filter
       3.3
         fft band pass filter and contrast enhancement
+      3.4
+        fft gaussian high pass filter and contract enhancement
     */
 
   // utility
@@ -749,9 +751,9 @@ namespace PRESEG{
     double DMAX = min(img.W, img.H) * FMAX;
     double FMIN = 0.3;
     double DMIN = min(img.W, img.H) * FMIN;
-    DMIN = 40;
-    DMAX = 60;
-    double contrastFactor = 2.0;
+    DMIN = 20;
+    DMAX = 200;
+    double contrastFactor = 5.0;
     //cout << DMIN << " " << DMAX << endl;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -783,6 +785,39 @@ namespace PRESEG{
       for(int j = 0; j < img.H; j++){
         int t = min(img.MAX_RGB, max((int)res[i][j], 0));
         img.setPixel(i, j, {t, t, t});
+      }
+    }
+  }
+
+  void method3_4(IO::image& img){
+    double contrastFactor = 50.0;
+    double theta = 50.0;
+    // build 2d vector of brightness values
+    vector<vector<double>> v (img.W, vector<double> (img.H));
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        v[i][j] = (double)brightness(img.getPixel(i, j));
+      }
+    }
+    // now calculate the fourier transform for all frequencies
+    vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        double d = doubleDist({0.0, 0.0}, {img.W/2.0, img.W/2.0}) - doubleDist({(double)i, (double)j}, {img.W/2.0, img.W/2.0});
+        double f = 1.0 - exp(-1*(d*d)/(2.0*theta*theta));
+        fre[i][j] = complexMult(fre[i][j], ComplexNumber(f, 0));
+        fre[i][j] = complexMult(fre[i][j], ComplexNumber(contrastFactor, 0));
+      }
+    }
+    vector<vector<double>> res = fft2D_inverse(fre, img.W, img.H);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        int t = min(img.MAX_RGB, max((int)res[i][j], 0));
+        if(t < img.MAX_RGB/2.0){
+          img.setPixel(i, j, {0, 0, 0});
+        }else{
+          img.setPixel(i, j, {img.MAX_RGB, img.MAX_RGB, img.MAX_RGB});
+        }
       }
     }
   }

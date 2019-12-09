@@ -107,4 +107,6 @@ namespace DATA{
       cout << min_cut[i].first/img.H << " " << min_cut[i].first%img.H << "     " << min_cut[i].second/img.H << " " << min_cut[i].second%img.H << endl;
     }
   }
+
+  //vector<vector<int>>
 }
