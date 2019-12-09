@@ -53,9 +53,9 @@ void dfs_markVisited(vector<vector<int>> &matrix, int node, vector<bool> &visite
   if(visited[node]) return;
   visited[node] = true;
   for(int i = 0; i < matrix.size(); i++){
-    if(matrix[node][i] != -1) cout << matrix[node][i] <<" " <<  matrix[i][node] << endl;
+    //if(matrix[node][i] != -1) cout << matrix[node][i] <<" " <<  matrix[i][node] << endl;
     if(matrix[node][i] > 0){
-      cout << "reached" << endl;
+      //cout << "reached" << endl;
       dfs_markVisited(matrix, i, visited);
     }
   }

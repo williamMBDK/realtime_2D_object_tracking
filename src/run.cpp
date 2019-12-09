@@ -82,10 +82,27 @@ int main(int argc, char const *argv[]) {
   PRESEG::method3_4(img);*/
 
   // method 1.3 + 3.4 + visualisation
-  PRESEG::method1_3(img);
-  PRESEG::method3_4(img);
-  DATA::pixel_graph g = DATA::getPixelGraph_binary(img);
-  img = DATA::pixelGraphToIMG(g);
+  /*IO::image temp = img;
+  PRESEG::method1_3(temp);
+  PRESEG::method3_4(temp);
+  DATA::pixel_graph g = DATA::getPixelGraph(temp, false);
+  DATA::applyHeuristicsToPixelGraph(g, img);
+  DATA::pixelGraphToIMG(g, img);*/
+
+  // method 2 + min cut
+  pair<int, int> backgroundPixel, foregroundPixel;
+  cout << "background pixel (0-indexed, x, y): ";
+  cin >> backgroundPixel.first >> backgroundPixel.second;
+  cout << "foreground pixel (0-indexed, x, y): ";
+  cin >> foregroundPixel.first >> foregroundPixel.second;
+  IO::image temp = img;
+  PRESEG::method2(temp);
+  /*DATA::pixel_graph g = DATA::getPixelGraph(temp, true);
+  DATA::applyHeuristicsToPixelGraph(g, img);
+  DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
+  vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
+  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);*/
+  img = temp;
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
