@@ -7,6 +7,12 @@ namespace DATA{
     return x > -1 && x < W && y > -1 && y < H;
   }
 
+  double brightness(vector<int> pixel){
+    return 0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2];
+  }
+
+  // BEGIN NETWORK FLOW
+
   struct flow_graph{
     int s;
     int t;
@@ -108,5 +114,100 @@ namespace DATA{
     }
   }
 
-  //vector<vector<int>>
+  //END NETWORK FLOW
+
+  // BEGIN PIXEL GRAPHS
+  struct pixel_graph{
+    int N = 0; // number of nodes
+    int W, H, MAX_RGB;
+    vector<vector<int>> adjacency_list;
+    vector<vector<pair<int, int>>> pixels;
+    /*pixel_graph(int N){
+      this->N = N;
+      this->adjacency_list = vector<vector<int>> (N);
+      this->pixels = vector<vector<int>> (N);
+    }*/
+  };
+
+  pixel_graph getPixelGraph_binary(IO::image& img){
+    int MAX_SIZE = 300;
+    pixel_graph g;
+    g.W = img.W;
+    g.H = img.H;
+    g.MAX_RGB = img.MAX_RGB;
+    vector<pair<int, int>> dirs = {
+      {-1, 0},
+      {1, 0},
+      {0, 1},
+      {0, -1}
+    };
+    vector<vector<int>> components = vector<vector<int>> (img.W, vector<int> (img.H));
+    int component = 0;
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        if(components[i][j] == 0){ // unvisited
+          component++;
+          queue<pair<int, int>> q;
+          q.push({i, j});
+          int count = 0;
+          while(count <= MAX_SIZE && !q.empty()){
+            pair<int, int> node = q.front(); q.pop();
+            if(components[node.first][node.second] != 0) continue;
+            count++;
+            components[node.first][node.second] = component;
+            for(int l = 0; l < 4; l++){
+              int newX = node.first + dirs[l].first;
+              int newY = node.second + dirs[l].second;
+              if(isInSideGrid(newX, newY, img.W, img.H) && brightness(img.getPixel(newX, newY)) == brightness(img.getPixel(node.first, node.second))){
+                q.push({newX, newY});
+              }
+            }
+          }
+        }
+      }
+    }
+    g.N = component;
+    g.pixels = vector<vector<pair<int, int>>> (g.N);
+    g.adjacency_list = vector<vector<int>> (g.N);
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        g.pixels[components[i][j] - 1].push_back({i, j});
+      }
+    }
+    for(int i = 0; i < g.N; i++){
+      unordered_set<int> nbs; // neighbours
+      for(int j = 0; j < g.pixels[i].size(); j++){
+        pair<int, int> node = g.pixels[i][j];
+        for(int l = 0; l < 4; l++){
+          int newX = node.first + dirs[l].first;
+          int newY = node.second + dirs[l].second;
+          if(isInSideGrid(newX, newY, img.W, img.H) && components[newX][newY] - 1 != i){
+            nbs.insert(components[newX][newY] - 1);
+          }
+        }
+      }
+      g.adjacency_list[i] = vector<int> (nbs.size());
+      int idx = 0;
+      for(int nb : nbs){
+        g.adjacency_list[i][idx++] = nb;
+      }
+    }
+    return g;
+  }
+
+  IO::image pixelGraphToIMG(pixel_graph& g){
+    srand(time(NULL));
+    IO::image img (g.W, g.H, g.MAX_RGB);
+    for(int i = 0; i < g.N; i++){
+      vector<int> color = {
+        rand() % g.MAX_RGB,
+        rand() % g.MAX_RGB,
+        rand() % g.MAX_RGB
+      };
+      for(int j = 0; j < g.pixels[i].size(); j++){
+        img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+      }
+    }
+    return img;
+  }
 }

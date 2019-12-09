@@ -77,9 +77,15 @@ int main(int argc, char const *argv[]) {
   /*// method 3.4
   PRESEG::method3_4(img);*/
 
-  // method 1.3 + 3.4
+  /*// method 1.3 + 3.4
+  PRESEG::method1_3(img);
+  PRESEG::method3_4(img);*/
+
+  // method 1.3 + 3.4 + visualisation
   PRESEG::method1_3(img);
   PRESEG::method3_4(img);
+  DATA::pixel_graph g = DATA::getPixelGraph_binary(img);
+  img = DATA::pixelGraphToIMG(g);
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
