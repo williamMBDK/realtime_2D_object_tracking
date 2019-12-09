@@ -303,7 +303,7 @@ namespace PRESEG{
     int POSWEIGTH = 5;
     vector<vector<int>> clusters = vector<vector<int>> ();
     vector<vector<int>> clusterColors = vector<vector<int>> ();
-    int size = 30;
+    int size = 40;
     for(int i = size/2; i < img.W; i+=size){
       for(int j = size/2; j < img.H; j+=size){
         vector<int> rgb = vector<int> (3);

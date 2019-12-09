@@ -26,11 +26,11 @@ int main(int argc, char const *argv[]) {
   cin >> backgroundPixel.first >> backgroundPixel.second;
   cout << "foreground pixel (0-indexed, x, y): ";
   cin >> foregroundPixel.first >> foregroundPixel.second;
-  DATA::flow_graph flowGraph = DATA::imageToFlowGraph(img, backgroundPixel, foregroundPixel);*/
-
+  start = chrono::high_resolution_clock::now();
+  DATA::flow_graph flowGraph = DATA::imageToFlowGraph(img, backgroundPixel, foregroundPixel);
   //printFlowGraph(flowGraph);
-  /*vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
-  DATA::printMinCutImage(min_cut, img);
+  vector<pair<int, int>> min_cut = minCut(flowGraph.matrix, flowGraph.s, flowGraph.t);
+  //DATA::printMinCutImage(min_cut, img);
   DATA::applyMinCutOnImage(img, min_cut);*/
 
   /*// heuristic: avgDiff test
@@ -95,14 +95,17 @@ int main(int argc, char const *argv[]) {
   cin >> backgroundPixel.first >> backgroundPixel.second;
   cout << "foreground pixel (0-indexed, x, y): ";
   cin >> foregroundPixel.first >> foregroundPixel.second;
+  start = chrono::high_resolution_clock::now();
   IO::image temp = img;
   PRESEG::method2(temp);
-  /*DATA::pixel_graph g = DATA::getPixelGraph(temp, true);
+  DATA::pixel_graph g = DATA::getPixelGraph(temp, true);
+  /*DATA::applyHeuristicsToPixelGraph(g, img);
+  DATA::pixelGraphToIMG(g, img);*/
   DATA::applyHeuristicsToPixelGraph(g, img);
   DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
   vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
-  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);*/
-  img = temp;
+  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);
+  //img = temp;
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
