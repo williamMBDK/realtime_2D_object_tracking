@@ -34,13 +34,13 @@ namespace DATA{
   }
 
   int deltaPixel_v2(vector<int> p1, vector<int> p2){
-    double k = 22.25;
+    double k = 10;
     double brightness1 = 0.2126*(double)p1[0] + 0.7152*(double)p1[1] + 0.0722*(double)p1[2];
     double brightness2 = 0.2126*(double)p2[0] + 0.7152*(double)p2[1] + 0.0722*(double)p2[2];
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
     //cout << brightness1 << " " << p1[0] << " " << p1[1] << " " << p1[2] << endl;
     //cout << (int) res + 1 << endl;
-    cout << res << "     " << p1[0] << " " << p1[1] << " " << p1[2] << "     " << p2[0] << " " << p2[1] << " " << p2[2] << endl;
+    //cout << res << "     " << p1[0] << " " << p1[1] << " " << p1[2] << "     " << p2[0] << " " << p2[1] << " " << p2[2] << endl;
     return (int) res;
   }
 
@@ -135,8 +135,11 @@ namespace DATA{
     vector<vector<bool>> visited (img.W, vector<bool> (img.H));
     vector<vector<bool>> forbiddenEdges = vector<vector<bool>> (g.N, vector<bool> (g.N));
     for(int i = 0; i < min_cut.size(); i++){
-      forbiddenEdges[min_cut[i].first][min_cut[i].second] = true;
-      forbiddenEdges[min_cut[i].second][min_cut[i].first] = true;
+      //cout << min_cut[i].first << " " << min_cut[i].second << endl;
+      if(min_cut[i].first < g.N && min_cut[i].second < g.N){
+        forbiddenEdges[min_cut[i].first][min_cut[i].second] = true;
+        forbiddenEdges[min_cut[i].second][min_cut[i].first] = true;
+      }
     }
     vector<bool> visitedSuperPixels (g.N);
     int startNode = -1;
@@ -233,7 +236,7 @@ namespace DATA{
   }
 
   pixel_graph getPixelGraph(IO::image& img, bool isFixed){
-    int MAX_SIZE = 300;
+    int MAX_SIZE = 30;
     pixel_graph g;
     g.W = img.W;
     g.H = img.H;
@@ -299,9 +302,22 @@ namespace DATA{
   }
 
   void pixelGraphToIMG(pixel_graph& g, IO::image& img){
-    srand(time(NULL));
     for(int i = 0; i < g.N; i++){
       vector<int> color = g.averagePixel[i];
+      for(int j = 0; j < g.pixels[i].size(); j++){
+        img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+      }
+    }
+  }
+
+  void pixelGraphToIMG_random(pixel_graph& g, IO::image& img){
+    srand(time(NULL));
+    for(int i = 0; i < g.N; i++){
+      vector<int> color = {
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB,
+        rand() % img.MAX_RGB
+      };
       for(int j = 0; j < g.pixels[i].size(); j++){
         img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
       }

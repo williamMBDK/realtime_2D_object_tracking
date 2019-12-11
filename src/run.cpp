@@ -43,8 +43,8 @@ int main(int argc, char const *argv[]) {
   /*// presegmentation experimential test
   PRESEG::experimential(img);*/
 
-  /*// presegmentation method 1.3 test
-  PRESEG::method1_3(img);*/
+  // presegmentation method 1.3 test
+  //PRESEG::method1_3(img);
 
   // k means (method 2)
   //PRESEG::method2(img);
@@ -89,7 +89,7 @@ int main(int argc, char const *argv[]) {
   DATA::applyHeuristicsToPixelGraph(g, img);
   DATA::pixelGraphToIMG(g, img);*/
 
-  // method 2 + min cut
+  /*// method 2 + min cut
   pair<int, int> backgroundPixel, foregroundPixel;
   cout << "background pixel (0-indexed, x, y): ";
   cin >> backgroundPixel.first >> backgroundPixel.second;
@@ -99,9 +99,27 @@ int main(int argc, char const *argv[]) {
   IO::image temp = img;
   PRESEG::method2(temp);
   DATA::pixel_graph g = DATA::getPixelGraph(temp, true);
-  /*DATA::applyHeuristicsToPixelGraph(g, img);
-  DATA::pixelGraphToIMG(g, img);*/
   DATA::applyHeuristicsToPixelGraph(g, img);
+  //DATA::pixelGraphToIMG(g, img);
+  DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
+  vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
+  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);
+  //img = temp;*/
+
+  // method 3.4 + 1-3 + min cut
+  pair<int, int> backgroundPixel, foregroundPixel;
+  cout << "background pixel (0-indexed, x, y): ";
+  cin >> backgroundPixel.first >> backgroundPixel.second;
+  cout << "foreground pixel (0-indexed, x, y): ";
+  cin >> foregroundPixel.first >> foregroundPixel.second;
+  start = chrono::high_resolution_clock::now();
+  IO::image temp = img;
+  PRESEG::method1_3(temp);
+  PRESEG::method3_4(temp);
+  DATA::pixel_graph g = DATA::getPixelGraph(temp, false);
+  DATA::applyHeuristicsToPixelGraph(g, img);
+  //DATA::pixelGraphToIMG(g, img);
+  //DATA::pixelGraphToIMG_random(g, img);
   DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
   vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
   DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);

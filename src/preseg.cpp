@@ -176,10 +176,11 @@ namespace PRESEG{
     vector<pair<int, int>> dirs = {
       {-1, 0}, {0, -1}, {1, 0}, {0, 1}
     };
-    vector<vector<vector<double>>> dp (N_MAX, vector<vector<double>> (img.W, vector<double> (img.H)));
+    vector<vector<vector<double>>> dp (N_MAX, vector<vector<double>> (img.W, vector<double> (img.H, 0.0)));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         dp[0][i][j] = (double)pow(brightness(img.getPixel(i, j)), 2);
+        //cout << dp[0][i][j] << " " << img.getPixel(i, j)[0] << " " << img.getPixel(i, j)[1] << " " << img.getPixel(i, j)[2] << endl;
       }
     }
     for(int n = 1; n < N_MAX; n++){ // slight memory optimization on ks.
@@ -248,7 +249,9 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
+        //cout << dp[N_MAX - 1][i][j] << endl;
         dp[N_MAX - 1][i][j] = sqrt(dp[N_MAX - 1][i][j]);
+        //cout << dp[N_MAX - 1][i][j] << endl;
         dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], (double)img.MAX_RGB);
         dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0.0);
         img.setPixel(i, j, {(int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j]});
@@ -615,7 +618,44 @@ namespace PRESEG{
     return res;
   }
 
-  vector<vector<ComplexNumber>> fft2D(vector<vector<double>>& v, int W, int H){
+  // zero gives true
+  bool isPowerOfTwo(int x){
+    return (x ^ 0) == x - 1;
+  }
+
+  int MSB(int x){
+    for(int i = 31; i >= 0; i--){
+      if(((x >> i) & 1) == 1) return i;
+    }
+    return -1;
+  }
+
+  void findProperDimensions(int& W, int& H){
+    if(isPowerOfTwo(W) && isPowerOfTwo(H)) return;
+    cout << MSB(W) << endl;
+    W = (1 << (MSB(W) + 1));
+    H = (1 << (MSB(W) + 1));
+    if(W > H) H = W;
+    else W = H;
+  }
+
+  template <typename T>
+  void applyProperDimensions(int W, int H, vector<vector<T>>& v){
+    vector<vector<T>> res = vector<vector<T>>(W, vector<T> (H));
+    for(int i = 0; i < v.size(); i++){
+      for(int j = 0; j < v[i].size(); j++){
+        res[i][j] = v[i][j];
+      }
+    }
+    v = res;
+  }
+
+  vector<vector<ComplexNumber>> fft2D(vector<vector<double>> v, int W, int H){
+    int oriW = W;
+    int oriH = H;
+    findProperDimensions(W, H);
+    applyProperDimensions<double>(W, H, v);
+    cout << oriW << " " <<W << " "<<oriH << " "<<H << endl;
     vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
     for(int i = 0; i < W; i++){
       vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
@@ -634,7 +674,13 @@ namespace PRESEG{
         res[j][i] = t[j];
       }
     }
-    return res;
+    vector<vector<ComplexNumber>> toReturn = vector<vector<ComplexNumber>>(oriW, vector<ComplexNumber> (oriH));
+    for(int i = 0; i < oriW; i++){
+      for(int j = 0; j < oriH; j++){
+        toReturn[i][j] = res[i][j];
+      }
+    }
+    return toReturn;
   }
 
   vector<ComplexNumber> fft1D_inverse(vector<ComplexNumber> &v, int SIZE){
@@ -678,6 +724,10 @@ namespace PRESEG{
   }
 
   vector<vector<double>> fft2D_inverse(vector<vector<ComplexNumber>>& v, int W, int H){
+    int oriW = W;
+    int oriH = H;
+    findProperDimensions(W, H);
+    applyProperDimensions<ComplexNumber>(W, H, v);
     vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[y][u]
     for(int u = 0; u < W; u++){
       vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
@@ -702,7 +752,13 @@ namespace PRESEG{
         //res[x][y] = t[x].a;
       }
     }
-    return res;
+    vector<vector<double>> toReturn = vector<vector<double>>(oriW, vector<double> (oriH));
+    for(int i = 0; i < oriW; i++){
+      for(int j = 0; j < oriH; j++){
+        toReturn[i][j] = res[i][j];
+      }
+    }
+    return toReturn;
   }
 
   void FFT_spectrum(IO::image& img){
