@@ -44,7 +44,7 @@ int main(int argc, char const *argv[]) {
   PRESEG::experimential(img);*/
 
   // presegmentation method 1.3 test
-  //PRESEG::method1_3(img);
+  PRESEG::method1_3(img);
 
   // k means (method 2)
   //PRESEG::method2(img);
@@ -107,7 +107,7 @@ int main(int argc, char const *argv[]) {
   //img = temp;*/
 
   // method 3.4 + 1-3 + min cut
-  pair<int, int> backgroundPixel, foregroundPixel;
+  /*pair<int, int> backgroundPixel, foregroundPixel;
   cout << "background pixel (0-indexed, x, y): ";
   cin >> backgroundPixel.first >> backgroundPixel.second;
   cout << "foreground pixel (0-indexed, x, y): ";
@@ -123,7 +123,7 @@ int main(int argc, char const *argv[]) {
   DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
   vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
   DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);
-  //img = temp;
+  //img = temp;*/
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
