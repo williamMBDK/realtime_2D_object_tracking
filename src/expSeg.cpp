@@ -206,7 +206,7 @@ void pixelGraphToImage_color(DATA::pixel_graph& g, IO::image& img){
   }
 }
 
-int main(int argc, char const *argv[]){
+/*int main(int argc, char const *argv[]){
   if(argc < 3){
     cerr << "missing argument file" << endl;
     return 1;
@@ -222,6 +222,29 @@ int main(int argc, char const *argv[]){
     g = mergeRegions(g);
   }
   pixelGraphToImage_greyscale(g, img);
+
+  auto stop = chrono::high_resolution_clock::now();
+  IO::writePPM(argv[2], img);
+  double duration = ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
+  cout << "Execution time: " << duration << " ms, excluding IO" << endl;
+}*/
+
+int main(int argc, char const *argv[]){
+  if(argc < 3){
+    cerr << "missing argument file" << endl;
+    return 1;
+  }
+  IO::image img;
+  IO::readPPM(argv[1], img);
+  auto start = chrono::high_resolution_clock::now();
+
+  DATA::pixel_graph g = imageToPixelGraph(img);
+  while(g.N > 26){
+    cout << g.N << endl;
+    evaluateRegions(g);
+    g = mergeRegions(g);
+  }
+  pixelGraphToImage_color(g, img);
 
   auto stop = chrono::high_resolution_clock::now();
   IO::writePPM(argv[2], img);
