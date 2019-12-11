@@ -7,8 +7,8 @@ int brightness(vector<int> pixel){
 }
 
 void evaluateRegions(DATA::pixel_graph& g){
-  int N_MAX = 20;
-  double dT = 0.1;
+  int N_MAX = 10;
+  double dT = 0.2;
   vector<vector<double>> dp (N_MAX, vector<double> (g.N, 0.0));
   for(int i = 0; i < g.N; i++){
     dp[0][i] = (double)pow(brightness(g.averagePixel[i]), 2);
@@ -94,7 +94,9 @@ DATA::pixel_graph mergeRegions(DATA::pixel_graph& g){
           pixelMap[g.pixels[node][j].first][g.pixels[node][j].second] = component;
         }
         for(int j = 0; j < g.adjacency_list[node].size(); j++){
-          q.push(g.adjacency_list[node][j]);
+          if(brightness(g.averagePixel[g.adjacency_list[node][j]]) == brightness(g.averagePixel[node])){
+            q.push(g.adjacency_list[node][j]);
+          }
         }
       }
     }
@@ -214,7 +216,7 @@ int main(int argc, char const *argv[]){
   auto start = chrono::high_resolution_clock::now();
 
   DATA::pixel_graph g = imageToPixelGraph(img);
-  int ITERATIONS = 1;
+  int ITERATIONS = 23;
   for(int i = 0; i < ITERATIONS; i++){
     evaluateRegions(g);
     g = mergeRegions(g);
