@@ -44,7 +44,7 @@ int main(int argc, char const *argv[]) {
   PRESEG::experimential(img);*/
 
   // presegmentation method 1.3 test
-  PRESEG::method1_3(img);
+  //PRESEG::method1_3(img);
 
   // k means (method 2)
   //PRESEG::method2(img);

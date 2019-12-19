@@ -3,6 +3,7 @@
 #include"IO.cpp"
 using namespace std;
 
+// returns an image with random brightness values
 IO::image random(int W, int H, int MAX_RGB){
   srand(time(NULL)); // seconds from 1970
   IO::image img (W, H, MAX_RGB);
@@ -17,10 +18,12 @@ IO::image random(int W, int H, int MAX_RGB){
   return img;
 }
 
+// return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
 bool check(int x, int y, int W, int H){
   return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
 }
 
+// returns and image with an object that has grown from starting point randomly
 IO::image uniformly_random_object(int W, int H, int MAX_RGB){
   cout << "size (1-100): ";
   double size; cin >> size;
@@ -56,10 +59,12 @@ IO::image uniformly_random_object(int W, int H, int MAX_RGB){
   return img;
 }
 
+// return distance between two points
 int dist(pair<int, int> p1, pair<int, int> p2){
   return abs(p1.first - p2.first) + abs(p1.second - p2.second);
 }
 
+// returns an image with an object with the specified properties
 IO::image object(int W, int H, int MAX_RGB){
   cout << "noise (0-100): ";
   double noise; cin >> noise;
@@ -103,6 +108,7 @@ IO::image object(int W, int H, int MAX_RGB){
   return img;
 }
 
+// main function being run at execution
 int main(){
   cout << "Type (random/randomobject/object): ";
   string type; cin >> type;

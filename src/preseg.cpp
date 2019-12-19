@@ -5,6 +5,7 @@ using namespace std;
 
 namespace PRESEG{
   /*
+  OVERVIEW AND NOTES:
   METHOD 1: system of recursive partial differential equations
     God hvis man ikke ved hvor mange segmenter der skal / kan være.
     det er på en graf af pixels.
@@ -55,9 +56,6 @@ namespace PRESEG{
     METHOD 1.4
       Use variant 2
       Solve using numerical methods (euler or runge-kutta*).
-    METHOD 1.5
-      udvidelse. kør en metode flere gange og byg en ny graf hver gang, der kigger på alle naboer til en knude på mappet. O(logn * n * STOR_CONSTANT) antallet af knuder vil altid mindst halveres.
-      Når den nye graf bygges svarer det til et graphcut.
     METHOD 1.6
       experimential
     METHOD 2:
@@ -65,25 +63,28 @@ namespace PRESEG{
       dimensions:
         x,y,r,g,b
     METHOD 3:
-      3.1:
+      METHOD 3.1:
         band-pass-filter
-      3.2
+      METHOD 3.2
         gaussian low pass filter
-      3.3
+      METHOD 3.3
         fft band pass filter and contrast enhancement
-      3.4
+      METHOD 3.4
         fft gaussian high pass filter and contract enhancement
     */
 
-  // utility
+  // utility function
+    // returns brightness of a pixel
     int brightness(vector<int> pixel){
       return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
     }
 
+    // return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
     bool isInGrid(int x, int y, int W, int H){
-      return x > 0 && x < W-1 && y > 0 && y < H-1; // does not hit boundary
+      return x > 0 && x < W-1 && y > 0 && y < H-1;
     }
 
+    // return the L2 norm of to vectors
     int dist(vector<int> &v1, vector<int> &v2){
       int s = 0;
       for(int i = 0; i < v1.size(); i++){
@@ -92,10 +93,12 @@ namespace PRESEG{
       return (int)sqrt(s);
     }
 
+    // return mapping of v from range [0, r1] to range [0, r2]
     int mapRange(int v, int r1, int r2){
       return (int)((double)v/(double)r1*(double)r2);
     }
 
+    // structure for storing a complex number, z = a + ib;
     struct ComplexNumber{
       double a;
       double b;
@@ -106,6 +109,7 @@ namespace PRESEG{
       }
     };
 
+    // return the L2 norm of to vectors (double)
     double doubleDist(vector<double> v1, vector<double> v2){
       double s = 0;
       for(int i = 0; i < v1.size(); i++){
@@ -114,6 +118,7 @@ namespace PRESEG{
       return sqrt(s);
     }
 
+    // returns a ComplexNumber as the result of multiplying two ComplexNumber's a and b.
     ComplexNumber complexMult(ComplexNumber a, ComplexNumber b){
       ComplexNumber res (
         (a.a * b.a - a.b * b.b),
@@ -122,6 +127,7 @@ namespace PRESEG{
       return res;
     }
 
+    // returns the addition of ComplexNumber a and ComplexNumber b as a new ComplexNumber
     ComplexNumber complexAdd(ComplexNumber a, ComplexNumber b){
       return ComplexNumber(
         a.a + b.a,
@@ -129,7 +135,8 @@ namespace PRESEG{
       );
     }
 
-  // can be optimized by removing previous dp
+  // modifies img with a pixel merging using dymanic programming and a discrete space
+  // OPTIMIZATION : can be optimized by removing previous dp
   void method1_1(IO::image& img){
       int tMax = 200, K = 5;
       vector<vector<vector<int>>> dp (img.W, vector<vector<int>> (img.H, vector<int> (tMax)));
@@ -169,7 +176,8 @@ namespace PRESEG{
       }
     }
 
-  // memory optimize dp
+  // modifies img with pixel merging using runge cutta
+  // OPTIMIZATION: memory optimize dp
   void method1_3(IO::image& img){
     int N_MAX = 20;
     double dT = 0.1;
@@ -180,7 +188,6 @@ namespace PRESEG{
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         dp[0][i][j] = (double)pow(brightness(img.getPixel(i, j)), 2);
-        //cout << dp[0][i][j] << " " << img.getPixel(i, j)[0] << " " << img.getPixel(i, j)[1] << " " << img.getPixel(i, j)[2] << endl;
       }
     }
     for(int n = 1; n < N_MAX; n++){ // slight memory optimization on ks.
@@ -249,9 +256,7 @@ namespace PRESEG{
     }
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        //cout << dp[N_MAX - 1][i][j] << endl;
         dp[N_MAX - 1][i][j] = sqrt(dp[N_MAX - 1][i][j]);
-        //cout << dp[N_MAX - 1][i][j] << endl;
         dp[N_MAX - 1][i][j] = min(dp[N_MAX - 1][i][j], (double)img.MAX_RGB);
         dp[N_MAX - 1][i][j] = max(dp[N_MAX - 1][i][j], 0.0);
         img.setPixel(i, j, {(int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j], (int)dp[N_MAX - 1][i][j]});
@@ -259,6 +264,7 @@ namespace PRESEG{
     }
   }
 
+  // modifies img with an experimential version of pixel merging
   void method1_6(IO::image& img){
     srand(time(NULL));
     int tMax = 200, K = 5;
@@ -298,6 +304,7 @@ namespace PRESEG{
     }
   }
 
+  // modifies img with k-means algorithm for finding superpixels
   void method2(IO::image& img){
     srand(time(NULL)); // seeding rng
     int thres = 10;
@@ -337,7 +344,6 @@ namespace PRESEG{
     vector<int> clusterCount = vector<int> (K, 0);
     vector<vector<vector<int>>> imgColors = vector<vector<vector<int>>> (img.W, vector<vector<int>> (img.H));
     while(true){
-      cout << "iteration" << endl;
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
         pair<int, int> m = {INT_MAX, -1};
         vector<int> pixel = img.getPixel(i, j);
@@ -350,7 +356,6 @@ namespace PRESEG{
             m = {d, k};
           }
         }
-        //cout << m.first << " " << clusters[m.second][0] << " "<< clusters[m.second][1] << " " << p[0] << " " << p[1] << endl;
         clusterCount[m.second]++;
         for(int d = 0; d < D; d++){
           clusterSums[m.second][d] += p[d];
@@ -369,7 +374,6 @@ namespace PRESEG{
       bool b = false;
       for(int i = 0; i < K; i++){
         if(dist(preClusters[i], clusters[i]) > thres){
-          //cout << dist(preClusters[i], clusters[i]) << endl;
           b = true;
           break;
         }
@@ -381,6 +385,7 @@ namespace PRESEG{
     }
   }
 
+  // returns the 1d discrete fourier transform of a specific frequency
   ComplexNumber ft1d_naive(vector<vector<double>>& v, int k, int l, int W, int H){
     ComplexNumber res (0.0, 0.0);
     for(int i = 0; i < W; i++){
@@ -394,6 +399,7 @@ namespace PRESEG{
     return res;
   }
 
+  // modifies img to make it illustrate the fourier spectrum of the original img
   void FT_spectrum(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -420,6 +426,7 @@ namespace PRESEG{
     }
   }
 
+  // returns the inverse fourier transform for a single value
   double ft1d_naive_inverse(vector<vector<ComplexNumber>> &fre, int i, int j, int W, int H){
     ComplexNumber res (0.0, 0.0);
     for(int k = 0; k < W; k++){
@@ -435,6 +442,7 @@ namespace PRESEG{
     return res.a / (W * H);
   }
 
+  // modifies img with the naive (slow) ft and applys a band-pass-filter on the fourier transform matrix
   void method3_1(IO::image& img){
     int FMAX = 2;
     int DMAX = min(img.W, img.H) / FMAX;
@@ -470,6 +478,7 @@ namespace PRESEG{
     }
   }
 
+  // modifies img with gaussian high pass filter applied to the fourier transform matrix (using naive method)
   void method3_2(IO::image& img){
     double theta = 100;
     double a = 0, b = 1;
@@ -503,6 +512,7 @@ namespace PRESEG{
     }
   }
 
+  // return a vector representing the 1D discrete fourier transform by using dynamic programming
   vector<ComplexNumber> ft1D_DP(vector<ComplexNumber>& v, int SIZE){
     vector<ComplexNumber> res (SIZE, ComplexNumber (0.0, 0.0));
     for(int k = 0; k < SIZE; k++){
@@ -521,6 +531,7 @@ namespace PRESEG{
     return res;
   }
 
+  // returns a vector representing the inverse 1D discrete fourier transform by using dynamic programming
   vector<ComplexNumber> ft1D_DP_inverse(vector<ComplexNumber>& v, int SIZE){
     vector<ComplexNumber> res (SIZE, ComplexNumber (0.0, 0.0));
     for(int k = 0; k < SIZE; k++){
@@ -536,10 +547,10 @@ namespace PRESEG{
         res[k].b += t.b;
       }
     }
-    //for(int i = 0; i < SIZE; i++) res[i] = complexMult(res[i], ComplexNumber(1/(double)SIZE, 0.0));
     return res;
   }
 
+  // return a 2D vector representing the 2D discrete fourier transform by using dynamic programming (using  above method)
   vector<vector<ComplexNumber>> ft2D_DP(vector<vector<double>>& v, int W, int H){
     vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
     for(int i = 0; i < W; i++){
@@ -562,6 +573,7 @@ namespace PRESEG{
     return res;
   }
 
+  // modifies img to become the fourier spectrum of the original img using dynamic programming
   void FT_spectrum_dp(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -583,7 +595,7 @@ namespace PRESEG{
     }
   }
 
-  // compute res. vary y and v or vary x and u.
+  // return a vector representing the 1D discrete fourier transform by using the fast fourier transform algorithm
   vector<ComplexNumber> fft1D(vector<ComplexNumber> &v, int SIZE){
     if(SIZE == 1){
       return {v[0]};
@@ -595,13 +607,6 @@ namespace PRESEG{
       even[i/2] = v[i];
       uneven[i/2] = v[i+1];
     }
-    /*ComplexNumber W (
-      1.0, 0.0
-    );
-    ComplexNumber WN (
-      cos(-2.0*M_PI/(double)SIZE),
-      sin(-2.0*M_PI/(double)SIZE)
-    );*/
     vector<ComplexNumber> res1 = fft1D(even, SIZE / 2);
     vector<ComplexNumber> res2 = fft1D(uneven, SIZE / 2);
     for(int i = 0; i < SIZE/2; i++){
@@ -610,19 +615,19 @@ namespace PRESEG{
         sin(-2.0*M_PI*i/(double)SIZE)
       );
       ComplexNumber t = complexMult(c, res2[i]);
-      //ComplexNumber t = complexMult(W, res2[i]);
       res[i] = complexAdd(res1[i], t);
       res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
-      //W = complexMult(W, WN);
     }
     return res;
   }
 
-  // zero gives true
+  // returns wheter x is a power of two
+  // OBS: zero gives true
   bool isPowerOfTwo(int x){
     return (x ^ 0) == x - 1;
   }
 
+  // returns the most significant bit in x
   int MSB(int x){
     for(int i = 31; i >= 0; i--){
       if(((x >> i) & 1) == 1) return i;
@@ -630,6 +635,7 @@ namespace PRESEG{
     return -1;
   }
 
+  // modifies W and H to represent a square of size MxM where M is a power of two
   void findProperDimensions(int& W, int& H){
     if(isPowerOfTwo(W) && isPowerOfTwo(H)) return;
     cout << MSB(W) << endl;
@@ -639,6 +645,7 @@ namespace PRESEG{
     else W = H;
   }
 
+  // modifies v to be extended to fit dimensions W and H
   template <typename T>
   void applyProperDimensions(int W, int H, vector<vector<T>>& v){
     vector<vector<T>> res = vector<vector<T>>(W, vector<T> (H));
@@ -650,12 +657,12 @@ namespace PRESEG{
     v = res;
   }
 
+  // return a vector representing the 2D discrete fourier transform by using the fast fourier transform algorithm
   vector<vector<ComplexNumber>> fft2D(vector<vector<double>> v, int W, int H){
     int oriW = W;
     int oriH = H;
     findProperDimensions(W, H);
     applyProperDimensions<double>(W, H, v);
-    cout << oriW << " " <<W << " "<<oriH << " "<<H << endl;
     vector<vector<ComplexNumber>> coloums (H, vector<ComplexNumber> (W)); // index[v][x]
     for(int i = 0; i < W; i++){
       vector<ComplexNumber> vZ = vector<ComplexNumber> (H);
@@ -683,6 +690,7 @@ namespace PRESEG{
     return toReturn;
   }
 
+  // return a vector representing the inverse 1D discrete fourier transform by using the fast fourier transform algorithm
   vector<ComplexNumber> fft1D_inverse(vector<ComplexNumber> &v, int SIZE){
     if(SIZE == 1){
       return {v[0]};
@@ -694,13 +702,6 @@ namespace PRESEG{
       even[i/2] = v[i];
       uneven[i/2] = v[i+1];
     }
-    /*ComplexNumber W (
-      1.0, 0.0
-    );
-    ComplexNumber WN (
-      cos(2.0*M_PI/(double)SIZE),
-      sin(2.0*M_PI/(double)SIZE)
-    );*/
     vector<ComplexNumber> res1 = fft1D_inverse(even, SIZE / 2);
     vector<ComplexNumber> res2 = fft1D_inverse(uneven, SIZE / 2);
     for(int i = 0; i < SIZE/2; i++){
@@ -709,20 +710,13 @@ namespace PRESEG{
         sin(2.0*M_PI*i/(double)SIZE)
       );
       ComplexNumber t = complexMult(c, res2[i]);
-      //ComplexNumber t = complexMult(W, res2[i]);
       res[i] = complexAdd(res1[i], t);
       res[i + SIZE/2] = complexAdd(res1[i], complexMult(ComplexNumber(-1.0, 0.0), t));
-      /*res[i] = complexMult(res[i], ComplexNumber(
-        1.0/(double)SIZE, 0.0
-      ));
-      res[i + SIZE/2] = complexMult(res[i + SIZE/2], ComplexNumber(
-        1.0/(double)SIZE, 0.0
-      ));*/
-      //W = complexMult(W, WN);
     }
     return res;
   }
 
+  // return a vector representing the inverse 2D discrete fourier transform by using the fast fourier transform algorithm
   vector<vector<double>> fft2D_inverse(vector<vector<ComplexNumber>>& v, int W, int H){
     int oriW = W;
     int oriH = H;
@@ -735,12 +729,7 @@ namespace PRESEG{
         vZ[y] = v[u][y];
       }
       vector<ComplexNumber> t = fft1D_inverse(vZ, H);
-      /*vector<ComplexNumber> t2 = ft1D_DP_inverse(vZ, H);
-      for(int i = 0; i < H; i++){
-        cout << t1[i].a << " " << t1[i].b << "    " << t2[i].a << " " << t2[i].b << endl;
-      }*/
       for(int y = 0; y < H; y++){
-        //coloums[y][u] = t[y];
         coloums[y][u] = complexMult(t[y], ComplexNumber(1.0/((double) H), 0.0));
       }
     }
@@ -749,7 +738,6 @@ namespace PRESEG{
       vector<ComplexNumber> t = fft1D_inverse(coloums[y], W);
       for(int x = 0; x < W; x++){
         res[x][y] = t[x].a / ((double) (W));
-        //res[x][y] = t[x].a;
       }
     }
     vector<vector<double>> toReturn = vector<vector<double>>(oriW, vector<double> (oriH));
@@ -761,6 +749,7 @@ namespace PRESEG{
     return toReturn;
   }
 
+  // modifies img to represents the original img's fourier spectrum using FFT
   void FFT_spectrum(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
@@ -782,13 +771,13 @@ namespace PRESEG{
     }
   }
 
+  // TEST FUNCTION
   void FFT_test(IO::image& img){
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         v[i][j] = (double)brightness(img.getPixel(i, j))/(double)img.MAX_RGB;
-        //cout << brightness(img.getPixel(i, j)) << " " << img.getPixel(i, j)[0] << " " << img.getPixel(i, j)[1] << " " << img.getPixel(i, j)[2] << " " << endl;
       }
     }
     vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
@@ -796,12 +785,12 @@ namespace PRESEG{
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         int t = min(img.MAX_RGB, max((int)(v[i][j] * (double)img.MAX_RGB), 0));
-        //cout << t << " " << res[i][j] << endl;
         img.setPixel(i, j, {t, t, t});
       }
     }
   }
 
+  // modifies img using band pass filter on the fourier transform matrix calculated using FFT
   void method3_3(IO::image& img){
     double FMAX = 0.7;
     double DMAX = min(img.W, img.H) * FMAX;
@@ -810,7 +799,6 @@ namespace PRESEG{
     DMIN = 20;
     DMAX = 200;
     double contrastFactor = 5.0;
-    //cout << DMIN << " " << DMAX << endl;
     // build 2d vector of brightness values
     vector<vector<double>> v (img.W, vector<double> (img.H));
     for(int i = 0; i < img.W; i++){
@@ -822,14 +810,8 @@ namespace PRESEG{
     vector<vector<ComplexNumber>> fre = fft2D(v, img.W, img.H);
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
-        //double d = sqrt(pow(i, 2) + pow(j, 2));
-        //double d = sqrt(pow(fre[i][j].a, 2.0) + pow(fre[i][j].b, 2.0));
-        /*double d = min(
-          min(i, j), min(img.W - i, img.H - j)
-        );*/
         double d = doubleDist({0.0, 0.0}, {img.W/2.0, img.W/2.0}) - doubleDist({(double)i, (double)j}, {img.W/2.0, img.W/2.0});
         if(d > DMAX || d < DMIN){
-          //cout << d << endl;
           fre[i][j] = ComplexNumber(0.0, 0.0);
         }else{
           fre[i][j] = complexMult(fre[i][j], ComplexNumber(contrastFactor, 0));
@@ -845,6 +827,7 @@ namespace PRESEG{
     }
   }
 
+  // modifies img using gaussian high pass filter on the fourier transform matrix calculated using FFT
   void method3_4(IO::image& img){
     double contrastFactor = 50.0;
     double theta = 50.0;

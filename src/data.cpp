@@ -3,16 +3,19 @@
 #include"IO.cpp"
 
 namespace DATA{
+  // return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
   bool isInSideGrid(int x, int y, int W, int H){
     return x > -1 && x < W && y > -1 && y < H;
   }
 
+  // returns brightness of a pixel
   double brightness(vector<int> pixel){
     return 0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2];
   }
 
   // BEGIN NETWORK FLOW
 
+  // structure representing a flow network
   struct flow_graph{
     int s;
     int t;
@@ -24,6 +27,7 @@ namespace DATA{
     }
   };
 
+  // returns a heuristic for the difference between two pixels
   int deltaPixel_v1(vector<int> p1, vector<int> p2){
     int sum = 0;
     for(int i = 0; i < 3; i++){
@@ -33,17 +37,16 @@ namespace DATA{
     return ma - sum;
   }
 
+  // returns a heuristic for the difference between two pixels
   int deltaPixel_v2(vector<int> p1, vector<int> p2){
     double k = 10;
     double brightness1 = 0.2126*(double)p1[0] + 0.7152*(double)p1[1] + 0.0722*(double)p1[2];
     double brightness2 = 0.2126*(double)p2[0] + 0.7152*(double)p2[1] + 0.0722*(double)p2[2];
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
-    //cout << brightness1 << " " << p1[0] << " " << p1[1] << " " << p1[2] << endl;
-    //cout << (int) res + 1 << endl;
-    //cout << res << "     " << p1[0] << " " << p1[1] << " " << p1[2] << "     " << p2[0] << " " << p2[1] << " " << p2[2] << endl;
     return (int) res;
   }
 
+  // return flowgraph: converts an image to a flowgraph
   flow_graph imageToFlowGraph(IO::image &img,
   pair<int, int> component1Node, pair<int, int> component2Node){
     vector<vector<int>> matrix (img.W * img.H + 2, vector<int> (img.W * img.H + 2, -1));
@@ -67,14 +70,8 @@ namespace DATA{
               img.getPixel(newI, newJ)
             );
             ma = max(matrix[idx][newIdx], ma);
-            //cout << i << " "<<j << " --> " << newI <<" "<< newJ << " of " << matrix[idx][newIdx] << endl;
-            //cout << newI <<" "<< newJ<<" " << newIdx << "         ";
-            //cout << matrix[idx][newIdx] << " ";
-          }else{
-            //cout << 0 << " ";
           }
         }
-        //cout << endl;
       }
     }
     int s = img.W*img.H;
@@ -86,6 +83,7 @@ namespace DATA{
     return flow_graph(s, t, matrix);
   }
 
+  // DEBUG FUNCTION
   void printFlowGraph(flow_graph g){
     for(int i = 0; i < g.matrix.size(); i++){
       for(int j = 0; j < g.matrix[i].size(); j++){
@@ -95,20 +93,20 @@ namespace DATA{
     }
   }
 
+  // modifies img to have the binary image segmentation visualized
   void applyMinCutOnImage(IO::image &img, vector<pair<int, int>> &min_cut){
     for(int i = 0; i < min_cut.size(); i++){
       int x1 = min_cut[i].first / img.H;
       int y1 = min_cut[i].first % img.H;
       int x2 = min_cut[i].second / img.H;
       int y2 = min_cut[i].second % img.H;
-      //cout << x1 << " " << y1 << endl;
-      //cout << x2 << " " << y2 << endl;
       if(isInSideGrid(x1, y1, img.W, img.H)) img.setPixel(x1, y1, {0, img.MAX_RGB, 0}); // green
       if(isInSideGrid(x2, y2, img.W, img.H)) img.setPixel(x2, y2, {0, 0, img.MAX_RGB}); // blue
       // green is outer boundary and blue is inner
     }
   }
 
+  // DEBUG FUNCTION
   void printMinCutImage(vector<pair<int, int>>& min_cut, IO::image &img){
     for(int i = 0; i < min_cut.size(); i++){
       cout << min_cut[i].first/img.H << " " << min_cut[i].first%img.H << "     " << min_cut[i].second/img.H << " " << min_cut[i].second%img.H << endl;
@@ -118,6 +116,8 @@ namespace DATA{
   //END NETWORK FLOW
 
   // BEGIN PIXEL GRAPHS
+
+  // structure to represent pixel graphs (superpixels)
   struct pixel_graph{
     int N = 0; // number of nodes
     int W, H, MAX_RGB;
@@ -131,11 +131,11 @@ namespace DATA{
     }*/
   };
 
+  // modifies img to have the binary image segmentation visualized
   void applyMinCutOnImageFromPixelGraph(IO::image &img, vector<pair<int, int>> &min_cut, pixel_graph& g, flow_graph& fg){
     vector<vector<bool>> visited (img.W, vector<bool> (img.H));
     vector<vector<bool>> forbiddenEdges = vector<vector<bool>> (g.N, vector<bool> (g.N));
     for(int i = 0; i < min_cut.size(); i++){
-      //cout << min_cut[i].first << " " << min_cut[i].second << endl;
       if(min_cut[i].first < g.N && min_cut[i].second < g.N){
         forbiddenEdges[min_cut[i].first][min_cut[i].second] = true;
         forbiddenEdges[min_cut[i].second][min_cut[i].first] = true;
@@ -185,6 +185,7 @@ namespace DATA{
     }
   }
 
+  // returns a flow_graph based on a pixelgraph
   flow_graph getFlowGraphFromPixelGraph(pixel_graph& g, pair<int, int> component1Node, pair<int, int> component2Node){
     vector<vector<int>> matrix (g.N + 2, vector<int> (g.N + 2, -1));
     int ma = 0;
@@ -216,6 +217,7 @@ namespace DATA{
     return flow_graph(s, t, matrix);
   }
 
+  //modifies g to contains neccesary heuristics about img
   void applyHeuristicsToPixelGraph(pixel_graph& g, IO::image& img){
     g.averagePixel = vector<vector<int>> (g.N, vector<int> (3));
     for(int i = 0; i < g.N; i++){
@@ -231,10 +233,12 @@ namespace DATA{
     }
   }
 
+  // checks if pixel1 equals pixel2
   bool compare(vector<int> pixel1, vector<int> pixel2){
     return pixel1[0] == pixel2[0] && pixel1[1] == pixel2[1] && pixel1[2] == pixel2[2];
   }
 
+  // return pixel_graph reprsenting img
   pixel_graph getPixelGraph(IO::image& img, bool isFixed){
     int MAX_SIZE = 30;
     pixel_graph g;
@@ -301,6 +305,7 @@ namespace DATA{
     return g;
   }
 
+  // modifies img to contains the image represented by g
   void pixelGraphToIMG(pixel_graph& g, IO::image& img){
     for(int i = 0; i < g.N; i++){
       vector<int> color = g.averagePixel[i];
@@ -310,6 +315,7 @@ namespace DATA{
     }
   }
 
+  // modifies img contain the regions from g but with random colors
   void pixelGraphToIMG_random(pixel_graph& g, IO::image& img){
     srand(time(NULL));
     for(int i = 0; i < g.N; i++){

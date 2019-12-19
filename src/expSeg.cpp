@@ -2,10 +2,12 @@
 #include"data.cpp"
 #include"IO.cpp"
 
+// returns the brightness of the pixel
 int brightness(vector<int> pixel){
   return (int)(0.2126*(double)pixel[0] + 0.7152*(double)pixel[1] + 0.0722*(double)pixel[2]);
 }
 
+// modifies g with pixel merging using runge cutta
 void evaluateRegions(DATA::pixel_graph& g){
   int N_MAX = 10;
   double dT = 0.2;
@@ -14,7 +16,6 @@ void evaluateRegions(DATA::pixel_graph& g){
     dp[0][i] = (double)pow(brightness(g.averagePixel[i]), 2);
   }
   for(int n = 1; n < N_MAX; n++){
-    //cout << "iteration" << endl;
     vector<vector<double>> ks (4, vector<double> (g.N));
     for(int i = 0; i < g.N; i++){
       double m = DBL_MAX;
@@ -66,17 +67,16 @@ void evaluateRegions(DATA::pixel_graph& g){
   }
   for(int i = 0; i < g.N; i++){
     dp[N_MAX - 1][i] = sqrt(dp[N_MAX - 1][i]);
-    //dp[N_MAX - 1][i] = min(dp[N_MAX - 1][i], (double)g.MAX_RGB);
-    //dp[N_MAX - 1][i] = max(dp[N_MAX - 1][i], 0.0);
     g.averagePixel[i] = {(int)dp[N_MAX - 1][i], (int)dp[N_MAX - 1][i], (int)dp[N_MAX - 1][i]};
-    //if(g.N % 128 == 0) cout << "color" << endl;
   }
 }
 
+// return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
 bool isInSideGrid(int x, int y, int W, int H){
   return x > -1 && x < W && y > -1 && y < H;
 }
 
+// returns a pixelgraph where regions of same color in g has been merged
 DATA::pixel_graph mergeRegions(DATA::pixel_graph& g){
   DATA::pixel_graph res;
   int component = -1;
@@ -142,6 +142,7 @@ DATA::pixel_graph mergeRegions(DATA::pixel_graph& g){
   return res;
 }
 
+// returns a pixelGraph that represents the image, img
 DATA::pixel_graph imageToPixelGraph(IO::image& img){
   vector<pair<int, int>> dirs = {
     {-1, 0},
@@ -173,6 +174,7 @@ DATA::pixel_graph imageToPixelGraph(IO::image& img){
   return g;
 }
 
+// modifies img to represent the pixelGraph
 void pixelGraphToImage_greyscale(DATA::pixel_graph& g, IO::image& img){
   for(int i = 0; i < g.N; i++){
     vector<int> color = g.averagePixel[i];
@@ -185,6 +187,7 @@ void pixelGraphToImage_greyscale(DATA::pixel_graph& g, IO::image& img){
   }
 }
 
+// modifies img to represent the pixelGraph but with regions having the average color of the original image
 void pixelGraphToImage_color(DATA::pixel_graph& g, IO::image& img){
   for(int i = 0; i < g.N; i++){
     vector<int> color = {0, 0, 0};
@@ -229,6 +232,7 @@ void pixelGraphToImage_color(DATA::pixel_graph& g, IO::image& img){
   cout << "Execution time: " << duration << " ms, excluding IO" << endl;
 }*/
 
+// main runs on execution
 int main(int argc, char const *argv[]){
   if(argc < 3){
     cerr << "missing argument file" << endl;

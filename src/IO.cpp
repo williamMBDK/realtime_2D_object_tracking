@@ -2,6 +2,7 @@
 #include<bits/stdc++.h>
 using namespace std;
 namespace IO{
+  // structure for storing a ppm p3 image
   struct image{
     int H, W, MAX_RGB;
     vector<vector<vector<int>>> data;
@@ -21,6 +22,7 @@ namespace IO{
     }
   };
 
+  // TEST FUNCTION
   void __test1(vector<vector<vector<int>>> &imageData){
     stringstream ss;
     cout << "test1" << endl;
@@ -36,6 +38,7 @@ namespace IO{
     cout << ss.str() << endl;
   }
 
+  // modifies img to represent the image stored in the file with filename:file
   void readPPM(string file, image& img) {
     ifstream fileIn (file);
     if(fileIn.is_open()){
@@ -59,6 +62,7 @@ namespace IO{
     }
   }
 
+  // writes img to a file with name:file
   void writePPM(string file, image& img){
     ofstream fileOut (file);
     if(fileOut.is_open()){

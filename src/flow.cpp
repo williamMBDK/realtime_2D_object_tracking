@@ -2,8 +2,10 @@
 #include<bits/stdc++.h>
 using namespace std;
 
+// debugging define
 #define debug(x) cout << #x << " : " << x << endl
 
+// modifies matrix edge flows based on the augmenting path
 void adjustResidualGraph(vector<int> &path, vector<vector<int>> &matrix, int flow){
   for(int i = path.size() - 1; i > 0; i--){
     matrix[path[i]][path[i-1]] -= flow;
@@ -11,6 +13,7 @@ void adjustResidualGraph(vector<int> &path, vector<vector<int>> &matrix, int flo
   }
 }
 
+// returns the minimum available flow on any edge in path
 int getMinFlowOnPath(vector<int> &path, vector<vector<int>> &matrix){
   int maxEdgeCapacity = INT_MAX;
   for(int i = path.size() - 1; i > 0; i--){
@@ -20,12 +23,10 @@ int getMinFlowOnPath(vector<int> &path, vector<vector<int>> &matrix){
   return maxEdgeCapacity;
 }
 
+// modifies parents to represent to make parents[n] represent the node visited just before n in the recursion tree using DFS
 void dfs_parent(vector<vector<int>> &matrix, vector<int>& parents, int node){
   for(int i = 0; i < matrix.size(); i++){
-    //cout << node << " " << i << endl;
-    //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
     if(matrix[node][i] > 0 && parents[i] == -1){
-      //cout << node / 15 << " "<< node % 15 << " --> " << i / 15 << " "<< i % 15 << endl;
       parents[i] = node;
       dfs_parent(matrix, parents, i);
     }
@@ -33,8 +34,9 @@ void dfs_parent(vector<vector<int>> &matrix, vector<int>& parents, int node){
 }
 
 /*
-  optimering: bruge bfs
-  optimering: stoppe ligeså snart t er noget i bfs metoden
+  return an argumenting path in the flow network represented by the matrix, s and t
+  OPTIMIZATION: bruge bfs
+  OPTIMIZATION: stoppe ligeså snart t er nået i bfs metoden
 */
 vector<int> getPath(vector<vector<int>> &matrix, int s, int t){
   vector<int> parents (matrix.size(), -1);
@@ -49,18 +51,18 @@ vector<int> getPath(vector<vector<int>> &matrix, int s, int t){
   return path;
 }
 
+// modifies visited represent which nodes are reachable from a given start node in the graph reprsented by the matrix
 void dfs_markVisited(vector<vector<int>> &matrix, int node, vector<bool> &visited){
   if(visited[node]) return;
   visited[node] = true;
   for(int i = 0; i < matrix.size(); i++){
-    //if(matrix[node][i] != -1) cout << matrix[node][i] <<" " <<  matrix[i][node] << endl;
     if(matrix[node][i] > 0){
-      //cout << "reached" << endl;
       dfs_markVisited(matrix, i, visited);
     }
   }
 }
 
+// returns the maxflow in the graph reprsented by the matrix, s and t
 int maxFlow(vector<vector<int>> &matrix, int s, int t){
   int res = 0;
   int flow = -1;
@@ -82,6 +84,7 @@ int maxFlow(vector<vector<int>> &matrix, int s, int t){
   return res;
 }
 
+// return a vector of edges representing the mincut on the graph in the graph reprsented by the matrix, s and t
 vector<pair<int, int>> minCut(vector<vector<int>> &matrix, int s, int t){
   vector<vector<int>> original = matrix; // copy
   maxFlow(matrix, s, t);
@@ -92,7 +95,6 @@ vector<pair<int, int>> minCut(vector<vector<int>> &matrix, int s, int t){
     if(visited[i]){
       for(int j = 0; j < original[i].size(); j++){
         if(!visited[j] && original[i][j] != -1){
-          //cout << original[i][j] << endl;
           cut.push_back({i, j});
         }
       }
@@ -101,6 +103,7 @@ vector<pair<int, int>> minCut(vector<vector<int>> &matrix, int s, int t){
   return cut;
 }
 
+// TEST FUNCTION
 void validateMaxFlowTestData(string infileString, string answerfileString, int test){
   cout << "testing " << infileString << endl;
   ifstream inFile (infileString);
@@ -124,6 +127,7 @@ void validateMaxFlowTestData(string infileString, string answerfileString, int t
   else cout << "\033[1;31mfailed test \033[0m" << test << " with answer = " << ans  << " and correct = " << corr << endl;
 }
 
+// TEST FUNCTION
 void validateAllMaxFlowTestData(){
   cout << "MAX FLOW VALIDATION" << endl;
   for(int i = 1; i <= 10; i++){
@@ -131,6 +135,7 @@ void validateAllMaxFlowTestData(){
   }
 }
 
+// TEST FUNCTION
 int countComponents(vector<vector<int>>& matrix){
   int count = 0;
   vector<bool> v (matrix.size());
@@ -143,6 +148,7 @@ int countComponents(vector<vector<int>>& matrix){
   return count;
 }
 
+// returns whether a graph represented by matrix contains exactly two components (as far as I can remember)
 bool isBinaryPartition(vector<vector<int>>& matrix){
   vector<vector<int>> copy = matrix;
   for(int i = 0; i < copy.size(); i++){
@@ -152,16 +158,17 @@ bool isBinaryPartition(vector<vector<int>>& matrix){
       }
     }
   }
-  //cout << countComponents(matrix) << " " << countComponents(copy) << endl;
   return countComponents(copy) == 2;
 }
 
+// DEBUG FUNCTION
 void printMinCutTestData(vector<pair<int, int>>& min_cut){
   for(int i = 0; i < min_cut.size(); i++){
     cout << (char)(min_cut[i].first + (int)'A') << " " << (char)(min_cut[i].second + (int)'A') << endl;
   }
 }
 
+// TEST FUNCTION
 // assumes max flow algorithm is correct
 void validateMinCut(string infileString, string answerfileString, int test){
   cout << "testing " << infileString << endl;
@@ -182,12 +189,7 @@ void validateMinCut(string infileString, string answerfileString, int test){
     matrix[a][b] = flow;
     matrix[b][a] = flow;
   }
-  /*if(countComponents(matrix) != 1){
-    cerr << "invalid graph" << endl;
-    return;
-  }*/
   vector<vector<int>> original = matrix;
-  //cout << countComponents(original) - (26 - nodes.size()) << endl;
   vector<pair<int, int>> min_cut = minCut(matrix, s, t);
   int min_cut_size = 0;
   for(int i = 0; i < min_cut.size(); i++){
@@ -198,9 +200,6 @@ void validateMinCut(string infileString, string answerfileString, int test){
     original[min_cut[i].first][min_cut[i].second] = 0;
     original[min_cut[i].second][min_cut[i].first] = 0;
   }
-  //printMinCut(min_cut);
-  /*bool isPartitioned = isBinaryPartition(original);
-  cout << isPartitioned << endl;*/
   int amountOfComponents = countComponents(original) - (26 - nodes.size());
   ifstream answerFile (answerfileString);
   int max_flow; answerFile >> max_flow;
@@ -208,6 +207,7 @@ void validateMinCut(string infileString, string answerfileString, int test){
   else cout << "\033[1;31mfailed test \033[0m" << test << " with answer = " << min_cut_size << " and correct = " << max_flow << endl;
 }
 
+// TEST FUNCTION
 void validateAllMinCut(){
   cout << "MIN CUT VALIDATION" << endl;
   for(int i = 1; i <= 10; i++){
@@ -215,6 +215,7 @@ void validateAllMinCut(){
   }
 }
 
+// main function used when testing
 /*int main(){
   validateAllMaxFlowTestData();
   cout << endl;

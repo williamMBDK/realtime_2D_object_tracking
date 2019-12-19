@@ -4,10 +4,12 @@
 using namespace std;
 
 namespace HEU{
+  // return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
   bool isInSideGrid(int x, int y, int W, int H){
     return x > -1 && x < W && y > -1 && y < H;
   }
 
+  // returns the average brightness difference of pairs of pixels that neigbours in img
   int avgDiff(IO::image img){
     vector<pair<int, int>> dirs = {
       {-1, 0},
