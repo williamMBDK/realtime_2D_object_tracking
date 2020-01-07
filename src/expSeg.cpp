@@ -8,9 +8,9 @@ int brightness(vector<int> pixel){
 }
 
 // modifies g with pixel merging using runge cutta
-void evaluateRegions(DATA::pixel_graph& g){
-  int N_MAX = 10;
-  double dT = 0.2;
+void evaluateRegions(DATA::pixel_graph& g, int initialAmountOfSegments){
+  int N_MAX = 20;
+  double dT = (double) g.N / 10.0 / (double)initialAmountOfSegments;
   vector<vector<double>> dp (N_MAX, vector<double> (g.N, 0.0));
   for(int i = 0; i < g.N; i++){
     dp[0][i] = (double)pow(brightness(g.averagePixel[i]), 2);
@@ -81,7 +81,7 @@ DATA::pixel_graph mergeRegions(DATA::pixel_graph& g){
   DATA::pixel_graph res;
   int component = -1;
   vector<int> components (g.N, -1);
-  vector<vector<int>> pixelMap (g.W, vector<int> (g.W));
+  vector<vector<int>> pixelMap (g.W, vector<int> (g.H));
   for(int i = 0; i < g.N; i++){
     if(components[i] == -1){
       queue<int> q; q.push(i);
@@ -209,6 +209,21 @@ void pixelGraphToImage_color(DATA::pixel_graph& g, IO::image& img){
   }
 }
 
+// modifies img contain the regions from g but with random colors
+void pixelGraphToIMG_random(DATA::pixel_graph& g, IO::image& img){
+  srand(time(NULL));
+  for(int i = 0; i < g.N; i++){
+    vector<int> color = {
+      rand() % img.MAX_RGB,
+      rand() % img.MAX_RGB,
+      rand() % img.MAX_RGB
+    };
+    for(int j = 0; j < g.pixels[i].size(); j++){
+      img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+    }
+  }
+}
+
 /*int main(int argc, char const *argv[]){
   if(argc < 3){
     cerr << "missing argument file" << endl;
@@ -238,19 +253,23 @@ int main(int argc, char const *argv[]){
     cerr << "missing argument file" << endl;
     return 1;
   }
+  cout << "Approximate amount of segments: ";
+  int SEGMENTS; cin >> SEGMENTS;
   IO::image img;
   IO::readPPM(argv[1], img);
   auto start = chrono::high_resolution_clock::now();
 
   DATA::pixel_graph g = imageToPixelGraph(img);
-  while(g.N > 6){
-    cout << g.N << endl;
-    evaluateRegions(g);
+  int initialAmountOfSegments = g.N;
+  while(g.N > SEGMENTS){
+    cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
+    evaluateRegions(g, initialAmountOfSegments);
     g = mergeRegions(g);
   }
-  pixelGraphToImage_color(g, img);
+  DATA::pixelGraphToIMG_random(g, img);
 
   auto stop = chrono::high_resolution_clock::now();
+  cout << "Amount of segments: "  << to_string(g.N) << endl;
   IO::writePPM(argv[2], img);
   double duration = ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
   cout << "Execution time: " << duration << " ms, excluding IO" << endl;
