@@ -40,8 +40,8 @@ int main(int argc, char const *argv[]) {
   /*// presegmentation method 1.1 test
   PRESEG::method1_1(img);*/
 
-  /*// presegmentation experimential test
-  PRESEG::experimential(img);*/
+  // presegmentation experimential test
+  //PRESEG::experimential(img);
 
   // presegmentation method 1.3 test
   //PRESEG::method1_3(img);
@@ -74,12 +74,19 @@ int main(int argc, char const *argv[]) {
   /*PRESEG::method1_3(img);
   PRESEG::method3_3(img);*/
 
-  /*// method 3.4
-  PRESEG::method3_4(img);*/
+  // method 3.4
+  //PRESEG::method3_4(img);
 
   /*// method 1.3 + 3.4
   PRESEG::method1_3(img);
   PRESEG::method3_4(img);*/
+
+  // method 2.0 + visualisation
+  /*IO::image temp = img;
+  PRESEG::method2(temp);
+  DATA::pixel_graph g = DATA::getPixelGraph(temp, true);
+  DATA::applyHeuristicsToPixelGraph(g, img);
+  DATA::pixelGraphToIMG(g, img);*/
 
   // method 1.3 + 3.4 + visualisation
   /*IO::image temp = img;
@@ -89,8 +96,8 @@ int main(int argc, char const *argv[]) {
   DATA::applyHeuristicsToPixelGraph(g, img);
   DATA::pixelGraphToIMG(g, img);*/
 
-  /*// method 2 + min cut
-  pair<int, int> backgroundPixel, foregroundPixel;
+  // method 2 + min cut
+  /*pair<int, int> backgroundPixel, foregroundPixel;
   cout << "background pixel (0-indexed, x, y): ";
   cin >> backgroundPixel.first >> backgroundPixel.second;
   cout << "foreground pixel (0-indexed, x, y): ";
@@ -122,7 +129,7 @@ int main(int argc, char const *argv[]) {
   //DATA::pixelGraphToIMG_random(g, img);
   DATA::flow_graph fg = DATA::getFlowGraphFromPixelGraph(g, backgroundPixel, foregroundPixel);
   vector<pair<int, int>> min_cut = minCut(fg.matrix, fg.s, fg.t);
-  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);
+  DATA::applyMinCutOnImageFromPixelGraph(img, min_cut, g, fg);*/
   //img = temp;*/
 
   auto stop = chrono::high_resolution_clock::now();

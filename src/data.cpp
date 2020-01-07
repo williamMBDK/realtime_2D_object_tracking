@@ -39,7 +39,7 @@ namespace DATA{
 
   // returns a heuristic for the difference between two pixels
   int deltaPixel_v2(vector<int> p1, vector<int> p2){
-    double k = 10;
+    double k = 40;
     double brightness1 = 0.2126*(double)p1[0] + 0.7152*(double)p1[1] + 0.0722*(double)p1[2];
     double brightness2 = 0.2126*(double)p2[0] + 0.7152*(double)p2[1] + 0.0722*(double)p2[2];
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
@@ -240,7 +240,7 @@ namespace DATA{
 
   // return pixel_graph reprsenting img
   pixel_graph getPixelGraph(IO::image& img, bool isFixed){
-    int MAX_SIZE = 30;
+    int MAX_SIZE = 2500;
     pixel_graph g;
     g.W = img.W;
     g.H = img.H;

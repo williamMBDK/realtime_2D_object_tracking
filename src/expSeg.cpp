@@ -243,7 +243,7 @@ int main(int argc, char const *argv[]){
   auto start = chrono::high_resolution_clock::now();
 
   DATA::pixel_graph g = imageToPixelGraph(img);
-  while(g.N > 26){
+  while(g.N > 6){
     cout << g.N << endl;
     evaluateRegions(g);
     g = mergeRegions(g);

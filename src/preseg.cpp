@@ -313,7 +313,7 @@ namespace PRESEG{
     int POSWEIGTH = 5;
     vector<vector<int>> clusters = vector<vector<int>> ();
     vector<vector<int>> clusterColors = vector<vector<int>> ();
-    int size = 40;
+    int size = 10;
     for(int i = size/2; i < img.W; i+=size){
       for(int j = size/2; j < img.H; j+=size){
         vector<int> rgb = vector<int> (3);
@@ -344,6 +344,7 @@ namespace PRESEG{
     vector<int> clusterCount = vector<int> (K, 0);
     vector<vector<vector<int>>> imgColors = vector<vector<vector<int>>> (img.W, vector<vector<int>> (img.H));
     while(true){
+      cout << "iteration" << endl;
       for(int i = 0; i < img.W; i++) for(int j = 0; j < img.H; j++){
         pair<int, int> m = {INT_MAX, -1};
         vector<int> pixel = img.getPixel(i, j);
