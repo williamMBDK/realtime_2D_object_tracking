@@ -8,9 +8,9 @@ int brightness(vector<int> pixel){
 }
 
 // modifies g with pixel merging using runge cutta
-void evaluateRegions(DATA::pixel_graph& g){
+void evaluateRegions(DATA::pixel_graph& g, int initialAmountOfSegments){
   int N_MAX = 20;
-  double dT = 0.001;
+  double dT = (double) g.N / 10.0 / (double)initialAmountOfSegments;
   vector<vector<double>> dp (N_MAX, vector<double> (g.N, 0.0));
   for(int i = 0; i < g.N; i++){
     dp[0][i] = (double)pow(brightness(g.averagePixel[i]), 2);
@@ -245,9 +245,10 @@ int main(int argc, char const *argv[]){
   auto start = chrono::high_resolution_clock::now();
 
   DATA::pixel_graph g = imageToPixelGraph(img);
+  int initialAmountOfSegments = g.N;
   while(g.N > SEGMENTS){
     cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-    evaluateRegions(g);
+    evaluateRegions(g, initialAmountOfSegments);
     g = mergeRegions(g);
   }
   pixelGraphToImage_color(g, img);
