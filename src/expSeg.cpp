@@ -209,6 +209,21 @@ void pixelGraphToImage_color(DATA::pixel_graph& g, IO::image& img){
   }
 }
 
+// modifies img contain the regions from g but with random colors
+void pixelGraphToIMG_random(DATA::pixel_graph& g, IO::image& img){
+  srand(time(NULL));
+  for(int i = 0; i < g.N; i++){
+    vector<int> color = {
+      rand() % img.MAX_RGB,
+      rand() % img.MAX_RGB,
+      rand() % img.MAX_RGB
+    };
+    for(int j = 0; j < g.pixels[i].size(); j++){
+      img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+    }
+  }
+}
+
 /*int main(int argc, char const *argv[]){
   if(argc < 3){
     cerr << "missing argument file" << endl;
@@ -251,7 +266,7 @@ int main(int argc, char const *argv[]){
     evaluateRegions(g, initialAmountOfSegments);
     g = mergeRegions(g);
   }
-  pixelGraphToImage_color(g, img);
+  DATA::pixelGraphToIMG_random(g, img);
 
   auto stop = chrono::high_resolution_clock::now();
   cout << "Amount of segments: "  << to_string(g.N) << endl;
