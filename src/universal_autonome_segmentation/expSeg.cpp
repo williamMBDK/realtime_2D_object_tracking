@@ -11,6 +11,7 @@ int brightness(vector<int> pixel){
 void evaluateRegions(DATA::pixel_graph& g, int initialAmountOfSegments){
   int N_MAX = 20;
   double dT = (double) g.N / 10.0 / (double)initialAmountOfSegments;
+  //double dT = 20;
   vector<vector<double>> dp (N_MAX, vector<double> (g.N, 0.0));
   for(int i = 0; i < g.N; i++){
     dp[0][i] = (double)pow(brightness(g.averagePixel[i]), 2);
@@ -266,7 +267,7 @@ int main(int argc, char const *argv[]){
     evaluateRegions(g, initialAmountOfSegments);
     g = mergeRegions(g);
   }
-  DATA::pixelGraphToIMG_random(g, img);
+  pixelGraphToImage_color(g, img);
 
   auto stop = chrono::high_resolution_clock::now();
   cout << "Amount of segments: "  << to_string(g.N) << endl;
