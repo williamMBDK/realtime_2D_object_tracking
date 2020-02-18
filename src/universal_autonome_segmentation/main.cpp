@@ -6,6 +6,22 @@
 #include"merge.cpp"
 #define current_time chrono::high_resolution_clock::now()
 using namespace std;
+void seg3(IO::image& img, auto& start){
+  cout << "Approximate amount of segments: ";
+  int SEGMENTS; cin >> SEGMENTS;
+  start = current_time;
+  DATA::pixel_graph g = DATA::imageToPixelGraph(img);
+  cout << endl;
+  while(g.N > SEGMENTS){
+    cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
+    SEG2::evaluateRegions2(g);
+    g = MERGE::mergeRegions(g, true);
+  }
+  cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
+  cout << endl;
+  DATA::pixelGraphToIMG_random(g, img);
+  cout << "Amount of segments: "  << to_string(g.N) << endl;
+}
 void seg2(IO::image& img, auto& start){
   cout << "Approximate amount of segments: ";
   int SEGMENTS; cin >> SEGMENTS;
@@ -14,7 +30,7 @@ void seg2(IO::image& img, auto& start){
   cout << endl;
   while(g.N > SEGMENTS){
     cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-    SEG2::evaluateRegions(g);
+    SEG2::evaluateRegions1(g);
     g = MERGE::mergeRegions(g, true);
   }
   cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
@@ -54,6 +70,7 @@ int main(int argc, char const *argv[]){
   switch (type) {
     case 1: seg1(img, start); break;
     case 2: seg2(img, start); break;
+    case 3: seg2(img, start); break;
     default:
       cout << "invalid segmentation type" << endl;
   }
