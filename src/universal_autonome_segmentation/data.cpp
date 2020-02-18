@@ -2,6 +2,24 @@
 #include"IO.cpp"
 
 namespace DATA{
+
+  // structure to represent pixel graphs (superpixels)
+  struct pixel_graph{
+    int N = 0; // number of nodes
+    int W, H, MAX_RGB;
+    vector<vector<int>> adjacency_list;
+    vector<vector<pair<int, int>>> pixels;
+    vector<vector<int>> averagePixel;
+  };
+
+  // difference between two vectors
+  int squaredDifference(vector<int>& a, vector<int> &b){
+    int s = 0;
+    int l = (int)a.size();
+    for(int i = 0; i < l; i++) s += (a[i] - b[i])*(a[i] - b[i]);
+    return s;
+  }
+
   // return boolean representating whether a point (x, y) is inside the grid (0, 0) to (W, H).
   bool isInSideGrid(int x, int y, int W, int H){
     return x > -1 && x < W && y > -1 && y < H;
@@ -30,15 +48,6 @@ namespace DATA{
     double res = 100 * exp(-1 * pow(brightness1-brightness2, 2)/(2*k*k));
     return (int) res;
   }
-
-  // structure to represent pixel graphs (superpixels)
-  struct pixel_graph{
-    int N = 0; // number of nodes
-    int W, H, MAX_RGB;
-    vector<vector<int>> adjacency_list;
-    vector<vector<pair<int, int>>> pixels;
-    vector<vector<int>> averagePixel;
-  };
 
   //modifies g to contains neccesary heuristics about img
   void applyHeuristicsToPixelGraph(pixel_graph& g, IO::image& img){
