@@ -26,8 +26,8 @@ namespace IO{
   void __test1(vector<vector<vector<int>>> &imageData){
     stringstream ss;
     cout << "test1" << endl;
-    for(int i = 0; i < imageData.size(); i++){
-      for(int j = 0; j < imageData[i].size(); j++){
+    for(int i = 0; i < (int)imageData.size(); i++){
+      for(int j = 0; j < (int)imageData[i].size(); j++){
         for(int k = 0; k < 3; k++){
           ss << imageData[i][j][k] << " ";
         }

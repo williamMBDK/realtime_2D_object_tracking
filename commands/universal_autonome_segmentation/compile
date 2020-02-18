@@ -1,0 +1,1 @@
+g++ -O3 -g -Wextra -Werror ./src/universal_autonome_segmentation/main.cpp -o ./compiled/universal_autonome_segmentation/main

@@ -1,0 +1,2 @@
+./commands/universal_autonome_segmentation/compile
+./commands/universal_autonome_segmentation/run $1 $2 $3

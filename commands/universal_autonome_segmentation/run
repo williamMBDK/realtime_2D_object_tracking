@@ -1,0 +1,1 @@
+./compiled/universal_autonome_segmentation/main $1 ./tests/universal_autonome_segmentation/$2 ./out/universal_autonome_segmentation/$3
