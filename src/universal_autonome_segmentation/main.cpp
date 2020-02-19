@@ -30,20 +30,21 @@ void seg2(IO::image& img, auto& start){
     auto st = current_time;
     SEG2::evaluateRegions1(currentGraph);
     auto en = current_time;
+    graphs.push_back(currentGraph);
     cout << "segmentation generation time: " << getDuration(st, en) << endl;
     st = current_time;
-    graphs.push_back(currentGraph);
     currentGraph = MERGE::mergeRegions(currentGraph);
     en = current_time;
     cout << "segmentation merge time: " << getDuration(st, en) << endl;
   }
-  cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl << endl;
+  DATA::graph& resGraph = currentGraph;
+  cout << "Found segmentation with " << to_string(resGraph.N) << " segments" << endl << endl;
 
-  cout << "Amount of segments in final segmentation: "  << to_string(currentGraph.N) << endl;
-  cout << "Amount of segmentations: " << (int)graphs.size() << endl;
+  cout << "Amount of segments in final segmentation: "  << to_string(resGraph.N) << endl;
+  cout << "Amount of segmentations: " << (int)graphs.size() + 1 << endl;
 
-  DATA::image_to_graph_translator_object itg = SEGMENT::getDerivedPixelsFromGraph(currentGraph, graphs, img);
-  DATA::pixelGraphToIMG_averageColor(currentGraph, itg, img);
+  DATA::image_to_graph_translator_object itg = SEGMENT::getDerivedPixelsFromGraph(resGraph, graphs, img);
+  DATA::pixelGraphToIMG_averageColor(resGraph, itg, img);
 }
 
 int main(int argc, char const *argv[]){
