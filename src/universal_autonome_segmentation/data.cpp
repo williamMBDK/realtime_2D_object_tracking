@@ -12,6 +12,23 @@ namespace DATA{
     vector<vector<int>> averagePixel;
   };
 
+  struct image_to_graph_translator_object{
+    int W, H;
+    vector<vector<int>> pixelMap;
+    graph_to_image_translator_object(int W, int H){
+      this->W = W;
+      this->H = H;
+      pixelMap = vector<vector<int>> (W, vector<int> (H));
+    }
+  };
+
+  struct graph{
+      int N = 0;
+      vector<vector<int>> derived_nodes;
+      vector<vector<int>> adjacency_list;
+      vector<vector<int>> mean_vector;
+  };
+
   // difference between two vectors
   int squaredDifference(vector<int>& a, vector<int> &b){
     int s = 0;
