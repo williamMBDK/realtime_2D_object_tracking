@@ -43,7 +43,20 @@ namespace UTIL{
   }
 
   template <class number>
-  vector<double> unitVector(vector<number>&a1){
-    return {};
+  double length (vector<number>&v){
+    int l = (int)v.size();
+    number s = 0;
+    for(int i = 0; i < l; i++) s += v[i] * v[i];
+    return sqrt((double)s);
+  }
+
+  template <class number>
+  vector<double> unitVector(vector<number>&v){
+    int l = (int)v.size();
+    vector<double> res (l);
+    double len = length(v);
+    if(len == 0) return {0.0, 0.0, 0.0};
+    for(int i = 0; i < l; i++) res[i] = v[i] / len;
+    return res;
   }
 }
