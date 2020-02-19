@@ -44,7 +44,7 @@ void seg2(IO::image& img, auto& start){
   cout << "Amount of segmentations: " << (int)graphs.size() + 1 << endl;
 
   DATA::image_to_graph_translator_object itg = SEGMENT::getDerivedPixelsFromGraph(resGraph, graphs, img);
-  DATA::pixelGraphToIMG_averageColor(resGraph, itg, img);
+  DATA::pixelGraphToIMG_averageColor_image(resGraph, itg, img);
 }
 
 int main(int argc, char const *argv[]){

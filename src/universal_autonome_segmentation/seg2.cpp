@@ -5,7 +5,6 @@
 #include"util.cpp"
 namespace SEG2{
   void evaluateRegions1(DATA::graph& g){
-    g.previous_mean_vector = g.mean_vector;
     vector<vector<int>> res (g.N);
     for(int i = 0; i < g.N; i++){
       int len = g.adjacency_list[i].size();

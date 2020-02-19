@@ -1,5 +1,6 @@
 #pragma once
 #include"IO.cpp"
+#include"util.cpp"
 
 namespace DATA{
 
@@ -83,6 +84,31 @@ namespace DATA{
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         img.setPixel(i, j, g.mean_vector[itg.pixel_map[i][j]]);
+      }
+    }
+  }
+
+  // modifies img to represent the pixelGraph but with regions having the average color of the original image
+  void pixelGraphToIMG_averageColor_image(
+    graph& g,
+    image_to_graph_translator_object& itg,
+    IO::image& img
+  ){
+    vector<vector<int>> average_colors (g.N, vector<int> (3));
+    for(int i = 0; i < itg.W; i++){
+      for(int j = 0; j < itg.H; j++){
+        vector<int> pixel = img.getPixel(i, j);
+        average_colors[itg.pixel_map[i][j]][0] += pixel[0];
+        average_colors[itg.pixel_map[i][j]][1] += pixel[1];
+        average_colors[itg.pixel_map[i][j]][2] += pixel[2];
+      }
+    }
+    for(int i = 0; i < g.N; i++){
+      average_colors[i] = UTIL::div_k(average_colors[i], g.pixel_count[i]);
+    }
+    for(int i = 0; i < itg.W; i++){
+      for(int j = 0; j < itg.H; j++){
+        img.setPixel(i, j, average_colors[itg.pixel_map[i][j]]);
       }
     }
   }
