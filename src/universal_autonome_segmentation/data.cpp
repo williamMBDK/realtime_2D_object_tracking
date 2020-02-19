@@ -20,7 +20,6 @@ namespace DATA{
       vector<vector<int>> derived_nodes;
       vector<vector<int>> adjacency_list;
       vector<vector<int>> mean_vector;
-      vector<vector<int>> previous_mean_vector;
       vector<int> pixel_count;
       graph(int N, int MAX_RGB){
         this->N = N;

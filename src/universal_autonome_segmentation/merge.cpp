@@ -20,7 +20,7 @@ namespace MERGE{
           int l = (int)g.adjacency_list[curr].size();
           for(int j = 0; j < l; j++){
             if(
-              //components[g.adjacency_list[curr][j]] == -1 &&
+              components[g.adjacency_list[curr][j]] == -1 &&
               DATA::squaredDifference(g.mean_vector[g.adjacency_list[curr][j]], g.mean_vector[curr]) < 2*2
             ){
                q.push(g.adjacency_list[curr][j]);
@@ -52,20 +52,20 @@ namespace MERGE{
     for(int i = 0; i < g.N; i++){
       res.derived_nodes[components[i]][--nodeCounts[components[i]]] = i;
       res.pixel_count[components[i]] += g.pixel_count[i];
-      res.mean_vector[components[i]][0] += g.mean_vector[i][0] * g.pixel_count[i];
+      /*res.mean_vector[components[i]][0] += g.mean_vector[i][0] * g.pixel_count[i];
       res.mean_vector[components[i]][1] += g.mean_vector[i][1] * g.pixel_count[i];
-      res.mean_vector[components[i]][2] += g.mean_vector[i][2] * g.pixel_count[i];
-      /*vector<int> t = UTIL::mult_k(g.mean_vector[i], g.pixel_count[i]); // this could be optimized in terms of time but also it will overflow if to many pixels
+      res.mean_vector[components[i]][2] += g.mean_vector[i][2] * g.pixel_count[i];*/
+      vector<int> t = UTIL::mult_k(g.mean_vector[i], g.pixel_count[i]); // this could be optimized in terms of time but also it will overflow if to many pixels
       res.mean_vector[components[i]] = UTIL::add(
         res.mean_vector[components[i]],
         t
-      );*/
+      );
     }
     for(int i = 0; i < componentCounter; i++){
-      res.mean_vector[i][0] /= res.pixel_count[i];
+      /*res.mean_vector[i][0] /= res.pixel_count[i];
       res.mean_vector[i][1] /= res.pixel_count[i];
-      res.mean_vector[i][2] /= res.pixel_count[i];
-      //res.mean_vector[i] = UTIL::div_k(res.mean_vector[i], res.pixel_count[i]);
+      res.mean_vector[i][2] /= res.pixel_count[i];*/
+      res.mean_vector[i] = UTIL::div_k(res.mean_vector[i], res.pixel_count[i]);
     }
     return res;
   }
