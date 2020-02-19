@@ -4,7 +4,7 @@
 #include"IO.cpp"
 
 namespace SEG1{
-  // modifies g with pixel merging using runge cutta
+  /*// modifies g with pixel merging using runge cutta
   void evaluateRegions(DATA::pixel_graph& g, int initialAmountOfSegments){
     int N_MAX = 20;
     //double dT = (double) g.N / 10.0 / (double)initialAmountOfSegments;
@@ -67,5 +67,5 @@ namespace SEG1{
       dp[N_MAX - 1][i] = sqrt(dp[N_MAX - 1][i]);
       g.averagePixel[i] = {(int)dp[N_MAX - 1][i], (int)dp[N_MAX - 1][i], (int)dp[N_MAX - 1][i]};
     }
-  }
+  }*/
 }

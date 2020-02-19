@@ -4,66 +4,48 @@
 #include"seg1.cpp"
 #include"seg2.cpp"
 #include"merge.cpp"
+#include"segmentation.cpp"
+#include"util.cpp"
 #define current_time chrono::high_resolution_clock::now()
 using namespace std;
+
 double getDuration(auto start, auto stop){
   return ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
 }
-void seg3(IO::image& img, auto& start){
-  cout << "Approximate amount of segments: ";
-  int SEGMENTS; cin >> SEGMENTS;
-  start = current_time;
-  DATA::pixel_graph g = DATA::imageToPixelGraph(img);
-  cout << endl;
-  while(g.N > SEGMENTS){
-    cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-    SEG2::evaluateRegions2(g);
-    g = MERGE::mergeRegions(g, true);
-  }
-  cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-  cout << endl;
-  DATA::pixelGraphToIMG_averageColor(g, img);
-  cout << "Amount of segments: "  << to_string(g.N) << endl;
-}
+
 void seg2(IO::image& img, auto& start){
+
   cout << "Approximate amount of segments: ";
   int SEGMENTS; cin >> SEGMENTS;
-  start = current_time;
-  DATA::pixel_graph g = DATA::imageToPixelGraph(img);
   cout << endl;
-  int cnt = 1;
-  while(g.N > SEGMENTS){
-    cnt++;
-    cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
+
+  start = current_time;
+
+  DATA::graph currentGraph = DATA::imageToGraph(img);
+  vector<DATA::graph> graphs;
+  string t;
+
+  while(currentGraph.N > SEGMENTS){
+    cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl;
     auto st = current_time;
-    SEG2::evaluateRegions1(g);
+    SEG2::evaluateRegions1(currentGraph);
     auto en = current_time;
     cout << "segmentation generation time: " << getDuration(st, en) << endl;
     st = current_time;
-    g = MERGE::mergeRegions(g, true);
+    graphs.push_back(currentGraph);
+    currentGraph = MERGE::mergeRegions(currentGraph);
     en = current_time;
     cout << "segmentation merge time: " << getDuration(st, en) << endl;
   }
-  cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-  cout << endl;
-  DATA::pixelGraphToIMG_averageColor(g, img);
-  cout << "Amount of segments in final segmentation: "  << to_string(g.N) << endl;
-  cout << "Amount of segmentations: " << cnt << endl;
+  cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl << endl;
+
+  cout << "Amount of segments in final segmentation: "  << to_string(currentGraph.N) << endl;
+  cout << "Amount of segmentations: " << (int)graphs.size() << endl;
+
+  DATA::image_to_graph_translator_object itg = SEGMENT::getDerivedPixelsFromGraph(currentGraph, graphs, img);
+  DATA::pixelGraphToIMG_averageColor(currentGraph, itg, img);
 }
-void seg1(IO::image& img, auto& start){
-  cout << "Approximate amount of segments: ";
-  int SEGMENTS; cin >> SEGMENTS;
-  start = current_time;
-  DATA::pixel_graph g = DATA::imageToPixelGraph(img);
-  int initialAmountOfSegments = g.N;
-  while(g.N > SEGMENTS){
-    cout << "Found segmentation with " << to_string(g.N) << " segments" << endl;
-    SEG1::evaluateRegions(g, initialAmountOfSegments);
-    g = MERGE::mergeRegions(g, false);
-  }
-  DATA::pixelGraphToIMG_averageColor(g, img);
-  cout << "Amount of segments: "  << to_string(g.N) << endl;
-}
+
 int main(int argc, char const *argv[]){
   if(argc < 4){
     cerr << "missing arguments" << endl;
@@ -80,9 +62,7 @@ int main(int argc, char const *argv[]){
   auto start = current_time;
 
   switch (type) {
-    case 1: seg1(img, start); break;
     case 2: seg2(img, start); break;
-    case 3: seg3(img, start); break;
     default:
       cout << "invalid segmentation type" << endl;
   }

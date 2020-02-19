@@ -3,30 +3,31 @@
 
 namespace DATA{
 
-  // structure to represent pixel graphs (superpixels)
-  struct pixel_graph{
-    int N = 0; // number of nodes
-    int W, H, MAX_RGB;
-    vector<vector<int>> adjacency_list;
-    vector<vector<pair<int, int>>> pixels;
-    vector<vector<int>> averagePixel;
-  };
-
   struct image_to_graph_translator_object{
     int W, H;
-    vector<vector<int>> pixelMap;
-    graph_to_image_translator_object(int W, int H){
+    vector<vector<int>> pixel_map;
+    image_to_graph_translator_object(int W, int H){
       this->W = W;
       this->H = H;
-      pixelMap = vector<vector<int>> (W, vector<int> (H));
+      this->pixel_map = vector<vector<int>> (W, vector<int> (H));
     }
   };
 
   struct graph{
-      int N = 0;
+      int N;
+      int MAX_RGB;
       vector<vector<int>> derived_nodes;
       vector<vector<int>> adjacency_list;
       vector<vector<int>> mean_vector;
+      vector<int> pixel_count;
+      graph(int N, int MAX_RGB){
+        this->N = N;
+        this->MAX_RGB = MAX_RGB;
+        derived_nodes = vector<vector<int>>(N);
+        adjacency_list = vector<vector<int>>(N);
+        mean_vector = vector<vector<int>>(N, vector<int> (3));
+        pixel_count = vector<int> (N);
+      }
   };
 
   // difference between two vectors
@@ -66,60 +67,25 @@ namespace DATA{
     return (int) res;
   }
 
-  //modifies g to contains neccesary heuristics about img
-  void applyHeuristicsToPixelGraph(pixel_graph& g, IO::image& img){
-    g.averagePixel = vector<vector<int>> (g.N, vector<int> (3));
-    for(int i = 0; i < g.N; i++){
-      for(int j = 0; j < (int)g.pixels[i].size(); j++){
-        vector<int> pixel = img.getPixel(g.pixels[i][j].first, g.pixels[i][j].second);
-        g.averagePixel[i][0] += pixel[0];
-        g.averagePixel[i][1] += pixel[1];
-        g.averagePixel[i][2] += pixel[2];
-      }
-      g.averagePixel[i][0] /= g.pixels[i].size();
-      g.averagePixel[i][1] /= g.pixels[i].size();
-      g.averagePixel[i][2] /= g.pixels[i].size();
-    }
-  }
-
   // checks if pixel1 equals pixel2
   bool compare(vector<int> pixel1, vector<int> pixel2){
     return pixel1[0] == pixel2[0] && pixel1[1] == pixel2[1] && pixel1[2] == pixel2[2];
   }
 
   // modifies img to contains the image represented by g
-  void pixelGraphToIMG(pixel_graph& g, IO::image& img){
-    for(int i = 0; i < g.N; i++){
-      vector<int> color = g.averagePixel[i];
-      for(int j = 0; j < (int)g.pixels[i].size(); j++){
-        img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+  void pixelGraphToIMG_averageColor(
+    graph& g,
+    image_to_graph_translator_object& itg,
+    IO::image& img
+  ){
+    for(int i = 0; i < img.W; i++){
+      for(int j = 0; j < img.H; j++){
+        img.setPixel(i, j, g.mean_vector[itg.pixel_map[i][j]]);
       }
     }
   }
 
-  // modifies img to represent the pixelGraph but with regions having the average color of the original image
-  void pixelGraphToIMG_averageColor(DATA::pixel_graph& g, IO::image& img){
-    for(int i = 0; i < g.N; i++){
-      vector<int> color = {0, 0, 0};
-      for(int j = 0; j < (int)g.pixels[i].size(); j++){
-        vector<int> pixel = img.getPixel(g.pixels[i][j].first, g.pixels[i][j].second);
-        color[0] += pixel[0];
-        color[1] += pixel[1];
-        color[2] += pixel[2];
-      }
-      color[0] /= g.pixels[i].size();
-      color[1] /= g.pixels[i].size();
-      color[2] /= g.pixels[i].size();
-      color[0] = min(max(color[0], 0), img.MAX_RGB);
-      color[1] = min(max(color[1], 0), img.MAX_RGB);
-      color[2] = min(max(color[2], 0), img.MAX_RGB);
-      for(int j = 0; j < (int)g.pixels[i].size(); j++){
-        img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
-      }
-    }
-  }
-
-  // modifies img contain the regions from g but with random colors
+  /*// modifies img contain the regions from g but with random colors
   void pixelGraphToIMG_random(pixel_graph& g, IO::image& img){
     srand(time(NULL));
     for(int i = 0; i < g.N; i++){
@@ -145,35 +111,30 @@ namespace DATA{
         img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
       }
     }
-  }
+  }*/
 
-  // returns a pixelGraph that represents the image, img
-  DATA::pixel_graph imageToPixelGraph(IO::image& img){
+  // returns a graph that represents the image, img
+  graph imageToGraph(IO::image& img){
     vector<pair<int, int>> dirs = {
       {-1, 0},
       {1, 0},
       {0, -1},
       {0, 1}
     };
-    DATA::pixel_graph g;
-    g.N = img.W * img.H;
-    g.MAX_RGB = img.MAX_RGB; g.W = img.W; g.H = img.H;
-    g.adjacency_list = vector<vector<int>> (g.N);
-    g.pixels = vector<vector<pair<int, int>>> (g.N);
-    g.averagePixel = vector<vector<int>> (g.N);
+    graph g (img.W * img.H, img.MAX_RGB);
+    for(int i = 0; i < g.N; i++) g.pixel_count[i] = 1;
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){
         int node = i * img.H + j;
         for(int k = 0; k < 4; k++){
           int newI = i + dirs[k].first;
           int newJ = j + dirs[k].second;
-          int nb = newI * img.H + newJ;
           if(isInSideGrid(newI, newJ, img.W, img.H)){
-            g.adjacency_list[node].push_back(nb);
+            int nb = newI * img.H + newJ;
+            g.adjacency_list[node].push_back(nb); // SPEEDUP: not ideal
           }
         }
-        g.averagePixel[node] = img.getPixel(i, j);
-        g.pixels[node].push_back({i, j});
+        g.mean_vector[node] = img.getPixel(i, j);
       }
     }
     return g;

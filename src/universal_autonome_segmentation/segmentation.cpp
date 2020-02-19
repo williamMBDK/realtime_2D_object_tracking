@@ -7,7 +7,7 @@ namespace SEGMENT{
   // returns amount of pixels a given node contains and modifies pixelMap
   int traverseSegmentationTree(
     vector<int>& derived_nodes,
-    vector<DATA::graph&>& previousGraphs,
+    vector<DATA::graph>& previousGraphs,
     vector<vector<int>>& pixelMap,
     IO::image& img,
     int node
@@ -27,11 +27,11 @@ namespace SEGMENT{
         int y = curr.second % img.H;
         pixelMap[x][y] = node;
       }else{
-        int l = (int)graphs[curr.first].derived_nodes[curr.second].size();
+        int l = (int)previousGraphs[curr.first].derived_nodes[curr.second].size();
         for(int i = 0; i < l; i++){
           s.push({
             curr.first - 1,
-            graphs[curr.first].derived_nodes[curr.second][i]
+            previousGraphs[curr.first].derived_nodes[curr.second][i]
           });
         }
       }
@@ -41,12 +41,12 @@ namespace SEGMENT{
   // returns a graph_to_image_translator_object that describes the pixels that
   DATA::image_to_graph_translator_object getDerivedPixelsFromGraph(
     DATA::graph& currentGraph,
-    vector<DATA::graph&> previousGraphs,
-    IO::image img
+    vector<DATA::graph> previousGraphs,
+    IO::image& img
   ){
     DATA::image_to_graph_translator_object res (img.W, img.H);
     for(int i = 0; i < currentGraph.N; i++){
-      traverseSegmentationTree(currentGraph.derived_nodes[i], previousGraphs, res.pixelMap, img, i);
+      traverseSegmentationTree(currentGraph.derived_nodes[i], previousGraphs, res.pixel_map, img, i);
     }
     return res;
   }
