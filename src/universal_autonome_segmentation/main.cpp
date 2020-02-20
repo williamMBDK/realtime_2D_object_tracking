@@ -23,7 +23,9 @@ void seg2(IO::image& img, auto& start){
 
   DATA::graph currentGraph = DATA::imageToGraph(img);
   vector<DATA::graph> graphs;
-  string t;
+  double sum = 0;
+
+  //for(int i = 0; i < 100; i++) SEG2::evaluateRegions1(currentGraph);
 
   while(currentGraph.N > SEGMENTS){
     cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl;
@@ -31,19 +33,25 @@ void seg2(IO::image& img, auto& start){
     SEG2::evaluateRegions1(currentGraph);
     auto en = current_time;
     graphs.push_back(currentGraph);
+    sum += getDuration(st, en);
     cout << "segmentation generation time: " << getDuration(st, en) << endl;
     st = current_time;
     currentGraph = MERGE::mergeRegions(currentGraph);
     en = current_time;
+    sum += getDuration(st, en);
     cout << "segmentation merge time: " << getDuration(st, en) << endl;
   }
+  cout << "sum " << sum << endl;
   DATA::graph& resGraph = currentGraph;
   cout << "Found segmentation with " << to_string(resGraph.N) << " segments" << endl << endl;
 
   cout << "Amount of segments in final segmentation: "  << to_string(resGraph.N) << endl;
   cout << "Amount of segmentations: " << (int)graphs.size() + 1 << endl;
 
+  auto st = current_time;
   DATA::image_to_graph_translator_object itg = SEGMENT::getDerivedPixelsFromGraph(resGraph, graphs, img);
+  auto en = current_time;
+  cout << "get derived pixels time: " << getDuration(st, en) << endl;
   DATA::pixelGraphToIMG_averageColor_image(resGraph, itg, img);
 }
 
