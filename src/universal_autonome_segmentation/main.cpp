@@ -17,15 +17,14 @@ void seg2(IO::image& img, auto& start){
 
   cout << "Approximate amount of segments: ";
   int SEGMENTS; cin >> SEGMENTS;
+  cout << "With position as parameters (1 or 0): ";
+  bool withPosition; cin >> withPosition;
   cout << endl;
 
   start = current_time;
 
-  DATA::graph currentGraph = DATA::imageToGraph(img);
+  DATA::graph currentGraph = DATA::imageToGraph(img, withPosition);
   vector<DATA::graph> graphs;
-  double sum = 0;
-
-  //for(int i = 0; i < 100; i++) SEG2::evaluateRegions1(currentGraph);
 
   while(currentGraph.N > SEGMENTS){
     cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl;
@@ -33,15 +32,12 @@ void seg2(IO::image& img, auto& start){
     SEG2::evaluateRegions1(currentGraph);
     auto en = current_time;
     graphs.push_back(currentGraph);
-    sum += getDuration(st, en);
     cout << "segmentation generation time: " << getDuration(st, en) << endl;
     st = current_time;
     currentGraph = MERGE::mergeRegions(currentGraph);
     en = current_time;
-    sum += getDuration(st, en);
     cout << "segmentation merge time: " << getDuration(st, en) << endl;
   }
-  cout << "sum " << sum << endl;
   DATA::graph& resGraph = currentGraph;
   cout << "Found segmentation with " << to_string(resGraph.N) << " segments" << endl << endl;
 

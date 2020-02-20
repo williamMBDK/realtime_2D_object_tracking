@@ -141,7 +141,7 @@ namespace DATA{
   }*/
 
   // returns a graph that represents the image, img
-  graph imageToGraph(IO::image& img){
+  graph imageToGraph(IO::image& img, bool withPosition){
     vector<pair<int, int>> dirs = {
       {-1, 0},
       {1, 0},
@@ -161,7 +161,9 @@ namespace DATA{
             g.adjacency_list[node].push_back(nb); // SPEEDUP: not ideal
           }
         }
-        g.mean_vector[node] = img.getPixel(i, j);
+        vector<int> pixel = img.getPixel(i, j);
+        if(withPosition) g.mean_vector[node] = {pixel[0], pixel[1], pixel[2], i, j};
+        else g.mean_vector[node] = pixel;
       }
     }
     return g;
