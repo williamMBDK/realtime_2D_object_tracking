@@ -4,6 +4,32 @@
 #include"IO.cpp"
 #include"util.cpp"
 namespace SEG2{
+
+  // returns boolean representing whether node1 should merge into node2
+    // save is acceptable in dp.
+    // factors
+      // size of segment
+      // is a segment acceptable
+      //
+  bool shouldPerformMerge(DATA::graph& g, int node1, int node2){
+    // check if node1 is acceptable as a final segment, we call this acceptable.
+    // false: if node1 is surrounded by node2 and node1 is acceptable.
+    //        Even if node2 tries to merge towards node1 it will not be able to reach node1's rgbxy vector.
+    // false: if node1 is acceptable and node1 gets lost in node2 - meaning the following:
+    //          how big is the difference between the size of node1 and node2.
+    //          if node1 is not similar enough to node2 and the size difference is big then false.
+    // false: if node1 is acceptable and node2 is acceptable and their difference is big
+    // true : otherwhise
+    return true;
+  }
+
+  // returns a value representing the difference between node1 and node2
+  int getDiff(DATA::graph& g, int node1, int node2){
+    int res = DATA::squaredDifference(g.mean_vector[node1], g.mean_vector[node2]);
+    return res;
+  }
+
+  // optimize: all difference are calulated twice.
   void evaluateRegions1(DATA::graph& g){
     vector<vector<int>> res (g.N);
     for(int i = 0; i < g.N; i++){
@@ -12,7 +38,7 @@ namespace SEG2{
       int mi = INT_MAX;
       for(int j = 0; j < len; j++){
         int nb = g.adjacency_list[i][j];
-        int diff = DATA::squaredDifference(g.mean_vector[i], g.mean_vector[nb]);
+        int diff = getDiff(g, i, nb);
         if(diff < mi){
           mi = diff;
           idx = j;
