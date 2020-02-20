@@ -162,7 +162,11 @@ namespace DATA{
           }
         }
         vector<int> pixel = img.getPixel(i, j);
-        if(withPosition) g.mean_vector[node] = {pixel[0], pixel[1], pixel[2], i, j};
+        if(withPosition) g.mean_vector[node] = {
+          pixel[0], pixel[1], pixel[2],
+          UTIL::map(i, 0, img.W, 0, img.MAX_RGB),
+          UTIL::map(j, 0, img.H, 0, img.MAX_RGB)
+        };
         else g.mean_vector[node] = pixel;
       }
     }

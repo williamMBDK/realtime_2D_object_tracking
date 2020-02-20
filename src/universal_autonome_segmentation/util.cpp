@@ -2,6 +2,12 @@
 #include<bits/stdc++.h>
 using namespace std;
 namespace UTIL{
+
+  template <class number>
+  int map(number num, number l1, number r1, number l2, number r2){
+    return (num - l1) * (r2 - l2) / (r1 - l1) + l2;
+  }
+
   template <class number>
   void printVector(vector<number>& v){
     for(int i = 0; i < (int)v.size(); i++){
