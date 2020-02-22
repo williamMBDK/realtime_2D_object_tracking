@@ -112,21 +112,29 @@ namespace DATA{
     }
   }
 
-  /*// modifies img contain the regions from g but with random colors
-  void pixelGraphToIMG_random(pixel_graph& g, IO::image& img){
+  // modifies img contain the regions from g but with random colors
+  void pixelGraphToIMG_random_image(
+    graph& g,
+    image_to_graph_translator_object& itg,
+    IO::image& img
+  ){
     srand(time(NULL));
+    vector<vector<int>> colors (g.N, vector<int> (3));
     for(int i = 0; i < g.N; i++){
-      vector<int> color = {
+      colors[i] = {
         rand() % img.MAX_RGB,
         rand() % img.MAX_RGB,
         rand() % img.MAX_RGB
       };
-      for(int j = 0; j < (int)g.pixels[i].size(); j++){
-        img.setPixel(g.pixels[i][j].first, g.pixels[i][j].second, color);
+    }
+    for(int i = 0; i < itg.W; i++){
+      for(int j = 0; j < itg.H; j++){
+        img.setPixel(i, j, colors[itg.pixel_map[i][j]]);
       }
     }
   }
 
+  /*
   // modifies img to represent the pixelGraph with grayscale
   void pixelGraphToIMG_greyscale(DATA::pixel_graph& g, IO::image& img){
     for(int i = 0; i < g.N; i++){

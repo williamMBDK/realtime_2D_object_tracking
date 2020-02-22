@@ -39,13 +39,13 @@ namespace IO{
   }
 
   // modifies img to represent the image stored in the file with filename:file
-  void readPPM(string file, image& img) {
+  void readPPM(string file, image& img, bool shouldPrint) {
     ifstream fileIn (file);
     if(fileIn.is_open()){
       string type; fileIn >> type;
       int W, H; fileIn >> W >> H;
       int MAX_RGB; fileIn >> MAX_RGB;
-      cout << "Opened file of type " << type << " and dimensions " << W << " * " << H << " and max rgb value of " << MAX_RGB << endl;
+      if(shouldPrint) cout << "Opened file of type " << type << " and dimensions " << W << " * " << H << " and max rgb value of " << MAX_RGB << endl;
       img = image(W, H, MAX_RGB);
       for(int j = 0; j < H; j++){
         for(int i = 0; i < W; i++){
@@ -53,7 +53,7 @@ namespace IO{
           img.setPixel(i, j, {r, g, b});
         }
       }
-      cout << "Succesfully read image data from " << file << endl;
+      if(shouldPrint) cout << "Succesfully read image data from " << file << endl;
       fileIn.close();
       //__test1(img.data);
     }else{
@@ -63,7 +63,7 @@ namespace IO{
   }
 
   // writes img to a file with name:file
-  void writePPM(string file, image& img){
+  void writePPM(string file, image& img, bool shouldPrint){
     ofstream fileOut (file);
     if(fileOut.is_open()){
       fileOut << "P3" << endl;
@@ -77,7 +77,7 @@ namespace IO{
       }
       //__test1(img.data);
       fileOut.close();
-      cout << "Succesfully wrote image data to file " << file << endl;
+      if(shouldPrint) cout << "Succesfully wrote image data to file " << file << endl;
     }else{
       cerr << "could not write to file" << endl;
     }
