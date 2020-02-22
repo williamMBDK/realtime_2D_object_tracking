@@ -12,6 +12,33 @@ namespace SEG2{
       // is a segment acceptable
       //
   bool shouldPerformMerge(DATA::graph& g, int node1, int node2){
+    if(g.pixel_count[node1] * 100 / (g.W * g.H) < 1) return true;
+    vector<int> rgb1 = {g.mean_vector[node1][0], g.mean_vector[node1][1], g.mean_vector[node1][2]};
+    vector<int> rgb2 = {g.mean_vector[node2][0], g.mean_vector[node2][1], g.mean_vector[node2][2]};
+    vector<int> v1 = UTIL::mult_k(
+      rgb1,
+      g.pixel_count[node1]
+    );
+    vector<int> v2 = UTIL::mult_k(
+      rgb2,
+      g.pixel_count[node2]
+    );
+    vector<int> sum = UTIL::add(v1, v2);
+    vector<int> merge = UTIL::div_k(sum, g.pixel_count[node1] + g.pixel_count[node2]);
+    int diff = DATA::squaredDifference(
+      rgb1,
+      sum
+    );
+    if(diff > g.MAX_RGB * g.MAX_RGB){
+      return false;
+    }
+    if((int)g.adjacency_list[node1].size() == 1 && diff > g.MAX_RGB * g.MAX_RGB / 2){
+      return false;
+    }
+    if(g.pixel_count[node1] * 10 < g.pixel_count[node2]){
+      return false;
+    }
+
     // check if node1 is acceptable as a final segment, we call this acceptable.
     // false: if node1 is surrounded by node2 and node1 is acceptable.
     //        Even if node2 tries to merge towards node1 it will not be able to reach node1's rgbxy vector.
@@ -30,7 +57,7 @@ namespace SEG2{
   }
 
   // optimize: all difference are calulated twice.
-  void evaluateRegions1(DATA::graph& g){
+  void evaluateRegions1(DATA::graph& g, bool withValidation){
     vector<vector<int>> res (g.N);
     for(int i = 0; i < g.N; i++){
       int len = g.adjacency_list[i].size();
@@ -44,12 +71,18 @@ namespace SEG2{
           idx = j;
         }
       }
-      vector<int>& best = g.mean_vector[g.adjacency_list[i][idx]];
-      vector<int> t = UTIL::sub(best, g.mean_vector[i]);
-      res[i] = UTIL::div_k(t, 2);
+      if(withValidation && shouldPerformMerge(g, i, g.adjacency_list[i][idx])){
+        vector<int>& best = g.mean_vector[g.adjacency_list[i][idx]];
+        vector<int> t = UTIL::sub(best, g.mean_vector[i]);
+        res[i] = UTIL::div_k(t, 2);
+      }else if(!withValidation){
+        vector<int>& best = g.mean_vector[g.adjacency_list[i][idx]];
+        vector<int> t = UTIL::sub(best, g.mean_vector[i]);
+        res[i] = UTIL::div_k(t, 2);
+      }
     }
     for(int i = 0; i < g.N; i++){
-      g.mean_vector[i] = UTIL::add(g.mean_vector[i], res[i]);
+      if(res[i].size() != 0) g.mean_vector[i] = UTIL::add(g.mean_vector[i], res[i]);
     }
   }
 

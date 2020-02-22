@@ -21,13 +21,16 @@ namespace DATA{
       vector<vector<int>> adjacency_list;
       vector<vector<int>> mean_vector;
       vector<int> pixel_count;
-      graph(int N, int MAX_RGB){
+      int W, H;
+      graph(int N, int MAX_RGB, int W, int H){
         this->N = N;
         this->MAX_RGB = MAX_RGB;
         derived_nodes = vector<vector<int>>(N);
         adjacency_list = vector<vector<int>>(N);
         mean_vector = vector<vector<int>>(N, vector<int> (3));
         pixel_count = vector<int> (N);
+        this->W = W;
+        this->H = H;
       };
       graph(){};
   };
@@ -156,7 +159,7 @@ namespace DATA{
       {0, -1},
       {0, 1}
     };
-    graph g (img.W * img.H, img.MAX_RGB);
+    graph g (img.W * img.H, img.MAX_RGB, img.W, img.H);
     for(int i = 0; i < g.N; i++) g.pixel_count[i] = 1;
     for(int i = 0; i < img.W; i++){
       for(int j = 0; j < img.H; j++){

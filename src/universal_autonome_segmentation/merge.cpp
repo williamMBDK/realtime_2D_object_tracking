@@ -30,7 +30,7 @@ namespace MERGE{
       }
     }
     componentCounter++;
-    DATA::graph res (componentCounter, g.MAX_RGB);
+    DATA::graph res (componentCounter, g.MAX_RGB, g.W, g.H);
     vector<unordered_set<int>> nbs (componentCounter); // avoid hashsets - could be slow..
     for(int i = 0; i < g.N; i++){
       int l = g.adjacency_list[i].size();

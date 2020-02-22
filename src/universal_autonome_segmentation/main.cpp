@@ -13,6 +13,7 @@ double getDuration(auto start, auto stop){
   return ((double)(chrono::duration_cast<chrono::microseconds>(stop - start)).count())/1000.0;
 }
 
+// for large datasets (testing purposes)
 void seg3(IO::image& img, auto& start){
 
   bool withPosition = true;
@@ -24,7 +25,7 @@ void seg3(IO::image& img, auto& start){
   vector<DATA::graph> graphs;
 
   while(currentGraph.N != 1){
-    SEG2::evaluateRegions1(currentGraph);
+    SEG2::evaluateRegions1(currentGraph, false);
     graphs.push_back(currentGraph);
     currentGraph = MERGE::mergeRegions(currentGraph);
   }
@@ -37,8 +38,13 @@ void seg3(IO::image& img, auto& start){
 
 void seg2(IO::image& img, auto& start){
 
-  cout << "Approximate amount of segments: ";
-  int SEGMENTS; cin >> SEGMENTS;
+  cout << "Automatically determine segments (1 or 0): ";
+  bool automatic; cin >> automatic;
+  int SEGMENTS;
+  if(!automatic){
+    cout << "Approximate amount of segments: ";
+    cin >> SEGMENTS;
+  }
   cout << "With position as parameters (1 or 0): ";
   bool withPosition; cin >> withPosition;
   cout << "Randomized color in output (1 or 0): ";
@@ -50,10 +56,13 @@ void seg2(IO::image& img, auto& start){
   DATA::graph currentGraph = DATA::imageToGraph(img, withPosition);
   vector<DATA::graph> graphs;
 
-  while(currentGraph.N > SEGMENTS){
+  while(automatic ?
+    (graphs.size() == 0 || currentGraph.N != graphs[(int)graphs.size() - 1].N) && currentGraph.N != 1 :
+    currentGraph.N > SEGMENTS
+  ){
     cout << "Found segmentation with " << to_string(currentGraph.N) << " segments" << endl;
     auto st = current_time;
-    SEG2::evaluateRegions1(currentGraph);
+    SEG2::evaluateRegions1(currentGraph, automatic);
     auto en = current_time;
     graphs.push_back(currentGraph);
     cout << "segmentation generation time: " << getDuration(st, en) << endl;
@@ -64,7 +73,6 @@ void seg2(IO::image& img, auto& start){
   }
   DATA::graph& resGraph = currentGraph;
   cout << "Found segmentation with " << to_string(resGraph.N) << " segments" << endl << endl;
-
   cout << "Amount of segments in final segmentation: "  << to_string(resGraph.N) << endl;
   cout << "Amount of segmentations: " << (int)graphs.size() + 1 << endl;
 

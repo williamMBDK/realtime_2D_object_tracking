@@ -41,7 +41,7 @@ namespace SEGMENT{
   // returns a graph_to_image_translator_object that describes the pixels that
   DATA::image_to_graph_translator_object getDerivedPixelsFromGraph(
     DATA::graph& currentGraph,
-    vector<DATA::graph> previousGraphs,
+    vector<DATA::graph>& previousGraphs,
     IO::image& img
   ){
     DATA::image_to_graph_translator_object res (img.W, img.H);
