@@ -21,14 +21,18 @@ namespace DATA{
       vector<vector<int>> adjacency_list;
       vector<vector<int>> mean_vector;
       vector<int> pixel_count;
+      vector<vector<int>> max_vector;
+      vector<vector<int>> min_vector;
       int W, H;
       graph(int N, int MAX_RGB, int W, int H){
         this->N = N;
         this->MAX_RGB = MAX_RGB;
         derived_nodes = vector<vector<int>>(N);
         adjacency_list = vector<vector<int>>(N);
-        mean_vector = vector<vector<int>>(N, vector<int> (3));
+        mean_vector = vector<vector<int>>(N);
         pixel_count = vector<int> (N);
+        max_vector = vector<int> (N);
+        min_vector = vector<int> (N);
         this->W = W;
         this->H = H;
       };
@@ -173,12 +177,18 @@ namespace DATA{
           }
         }
         vector<int> pixel = img.getPixel(i, j);
-        if(withPosition) g.mean_vector[node] = {
-          pixel[0], pixel[1], pixel[2],
-          UTIL::map(i, 0, img.W, 0, img.MAX_RGB),
-          UTIL::map(j, 0, img.H, 0, img.MAX_RGB)
-        };
-        else g.mean_vector[node] = pixel;
+        if(withPosition){
+          g.mean_vector[node] = {
+            pixel[0], pixel[1], pixel[2],
+            UTIL::map(i, 0, img.W, 0, img.MAX_RGB),
+            UTIL::map(j, 0, img.H, 0, img.MAX_RGB)};
+          g.max_vector[node] = {g.mean_vector[node], g.mean_vector[node], g.mean_vector[node]};
+          g.min_vector[node] = {g.mean_vector[node], g.mean_vector[node], g.mean_vector[node]};
+        }else{
+          g.mean_vector[node] = pixel;
+          g.max_vector[node] = {g.mean_vector[node], g.mean_vector[node], g.mean_vector[node]};
+          g.min_vector[node] = {g.mean_vector[node], g.mean_vector[node], g.mean_vector[node]};
+        }
       }
     }
     return g;

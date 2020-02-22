@@ -61,8 +61,35 @@ namespace UTIL{
     int l = (int)v.size();
     vector<double> res (l);
     double len = length(v);
-    if(len == 0) return {0.0, 0.0, 0.0};
+    if(len == 0){
+      for(int i = 0; i < l; i++) res[i] = 0.0;
+      return res;
+    }
     for(int i = 0; i < l; i++) res[i] = v[i] / len;
+    return res;
+  }
+
+  // two matrises of size n*n (typically 5*5 or 3*3)
+  template <class number>
+  vector<vector<number>> getMax(vector<vector<number>>&v1, vector<vector<number>>&v2){
+    int l1 = (int)v1.size();
+    vector<vector<number>> res (l);
+    for(int i = 0; i < l; i++){
+      if(v1[i][i] > v2[i][i]) res[i] = v1[i];
+      else res[i] = v2[i];
+    }
+    return res;
+  }
+
+  // two matrises of size n*n (typically 5*5 or 3*3)
+  template <class number>
+  vector<vector<number>> getMin(vector<vector<number>>&v1, vector<vector<number>>&v2){
+    int l1 = (int)v1.size();
+    vector<vector<number>> res (l);
+    for(int i = 0; i < l; i++){
+      if(v1[i][i] < v2[i][i]) res[i] = v1[i];
+      else res[i] = v2[i];
+    }
     return res;
   }
 }

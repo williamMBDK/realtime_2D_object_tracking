@@ -10,25 +10,10 @@ namespace SEG2{
     // factors
       // size of segment
       // is a segment acceptable
-      //
+
   bool shouldPerformMerge(DATA::graph& g, int node1, int node2){
-    if(g.pixel_count[node1] * 100 / (g.W * g.H) < 1) return true;
-    vector<int> rgb1 = {g.mean_vector[node1][0], g.mean_vector[node1][1], g.mean_vector[node1][2]};
-    vector<int> rgb2 = {g.mean_vector[node2][0], g.mean_vector[node2][1], g.mean_vector[node2][2]};
-    vector<int> v1 = UTIL::mult_k(
-      rgb1,
-      g.pixel_count[node1]
-    );
-    vector<int> v2 = UTIL::mult_k(
-      rgb2,
-      g.pixel_count[node2]
-    );
-    vector<int> sum = UTIL::add(v1, v2);
-    vector<int> merge = UTIL::div_k(sum, g.pixel_count[node1] + g.pixel_count[node2]);
-    int diff = DATA::squaredDifference(
-      rgb1,
-      sum
-    );
+    if(HEU::getPercentileSize(g, node1) < 1) return true;
+    int diff = HEU::getSquaredDifference(g, node1, node2);
     if(diff > g.MAX_RGB * g.MAX_RGB){
       return false;
     }
@@ -38,6 +23,7 @@ namespace SEG2{
     if(g.pixel_count[node1] * 10 < g.pixel_count[node2]){
       return false;
     }
+    //int var = HEU::getPseudoVariance(g, node1, node2);
 
     // check if node1 is acceptable as a final segment, we call this acceptable.
     // false: if node1 is surrounded by node2 and node1 is acceptable.

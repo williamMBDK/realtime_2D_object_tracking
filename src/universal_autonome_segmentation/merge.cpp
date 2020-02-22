@@ -60,6 +60,10 @@ namespace MERGE{
         res.mean_vector[components[i]],
         t
       );
+      if(res.max_vector[components[i]].size() == 0) res.max_vector[components[i]] = g.max_vector[i];
+      else res.max_vector[components[i]] = UTIL::getMax(res.max_vector[components[i]], g.max_vector[i]);
+      if(res.min_vector[components[i]].size() == 0) res.min_vector[components[i]] = g.min_vector[i];
+      else res.min_vector[components[i]] = UTIL::getMin(res.min_vector[components[i]], g.min_vector[i]);
     }
     for(int i = 0; i < componentCounter; i++){
       /*res.mean_vector[i][0] /= res.pixel_count[i];
